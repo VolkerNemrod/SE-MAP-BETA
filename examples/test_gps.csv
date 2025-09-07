@@ -1,0 +1,4 @@
+name;type;seGPS;description
+Test Baza GPS;Stacja;GPS:Test Baza GPS:1000000:500000:-200000:#FF4444:;Testowa baza z GPS
+Test Kopalnia;Kopalnia;GPS:Test Kopalnia:-500000:800000:300000:#44FF44:;Testowa kopalnia
+Test Standardowy;Fabryka;GPS:Test Standardowy:0:0:0:#4444FF:;Test w centrum

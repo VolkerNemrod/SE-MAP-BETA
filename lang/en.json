@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Space Engineers 3D Map",
+    "author": "author: VolkerNemrod, 2025 v.16.08.25"
+  },
+  "ui": {
+    "buttons": {
+      "jump": "▶ JUMP",
+      "view2d": "🗺️ 2D",
+      "myData": "📁 My data"
+    },
+    "placeholders": {
+      "coordinates": "X,Y,Z or GPS:...",
+      "selectObject": "-- Select object --"
+    },
+    "messages": {
+      "selectObjectOrCoords": "Select an object from the list or enter coordinates.",
+      "invalidCoordinates": "Enter coordinates in format X,Y,Z or GPS:Name:X:Y:Z...",
+      "targetPoint": "Target point",
+      "gpsPoint": "GPS point",
+      "coordinatesPoint": "Coordinates point",
+      "jumpPoint": "Jump point"
+    },
+    "labels": {
+      "name": "Name",
+      "type": "Type",
+      "coordinates": "Coordinates",
+      "diameter": "Diameter",
+      "description": "Description",
+      "resources": "Resources",
+      "x": "X",
+      "y": "Y", 
+      "z": "Z",
+      "km": "km",
+      "m": "m"
+    },
+    "clear": {
+      "title": "Clear all markers and reset fields",
+      "cleared": "Cleared {{count}} markers",
+      "allCleared": "Cleared all markers and fields"
+    }
+  },
+  "controller": {
+    "title": "🎯 Point Controller",
+    "sections": {
+      "coordinates": "Coordinates:",
+      "speed": "Movement speed:",
+      "camera": "Camera mode:"
+    },
+    "buttons": {
+      "activate": "▶️ Activate",
+      "deactivate": "⏹️ Disable",
+      "reset": "🔄 Reset (0,0,0)",
+      "copyGPS": "📋 COPY GPS",
+      "pasteGPS": "📥 COPY FROM CLIPBOARD"
+    },
+    "camera": {
+      "follow": "👁️ Follow point",
+      "free": "🖱️ Free camera",
+      "center": "🎯 Center on point",
+      "followDesc": "Camera follows the point",
+      "freeDesc": "Normal mouse control",
+      "centerDesc": "Jump camera to point"
+    },
+    "speed": {
+      "ms": "{{speed}}m/s",
+      "kms": "{{speed}}km/s"
+    },
+    "messages": {
+      "activated": "Controller activated",
+      "deactivated": "Controller disabled",
+      "copiedGPS": "📋 GPS copied to clipboard!",
+      "loadedGPS": "📥 Loaded GPS: {{name}}",
+      "sizeChanged": "🎯 Point size: {{size}}km",
+      "clipboardNotSupported": "❌ Browser doesn't support clipboard reading",
+      "invalidGPSCoordinates": "❌ Invalid GPS coordinates",
+      "invalidGPSFormat": "❌ Invalid Space Engineers GPS format",
+      "noGPSData": "❌ Clipboard doesn't contain GPS data",
+      "clipboardError": "❌ Clipboard read error",
+      "copyError": "❌ Copy to clipboard error"
+    },
+    "instructions": {
+      "title": "Controls:",
+      "wasd": "movement on XZ plane",
+      "space": "up (Y+)",
+      "c": "down (Y-)",
+      "mouse": "Mouse wheel over panel",
+      "mouseDesc": "point size (1-500km)",
+      "note": "Controls active only when panel is open"
+    }
+  },
+  "userData": {
+    "title": "My location data",
+    "sections": {
+      "upload": "Upload CSV file",
+      "management": "Data management",
+      "help": "Help"
+    },
+    "buttons": {
+      "selectFile": "📁 Select CSV file",
+      "refresh": "🔄 Refresh",
+      "export": "💾 Export",
+      "clearAll": "🗑️ Clear all",
+      "close": "×"
+    },
+    "upload": {
+      "requiredColumns": "Required columns: name + (x,y,z) or name + seGPS",
+      "optionalColumns": "Optional: type, diameter, color, description, resources",
+      "newFeature": "New: seGPS - Space Engineers GPS format",
+      "downloadExamples": "📥 Download examples:",
+      "fullExample": "📄 Full example",
+      "gpsExample": "🚀 GPS SE",
+      "standardExample": "📍 Standard",
+      "loading": "Loading file...",
+      "success": "✅ Successfully loaded {{count}} objects from file \"{{filename}}\"",
+      "error": "❌ Error: {{error}}",
+      "fileError": "❌ File read error"
+    },
+    "management": {
+      "noData": "No local data",
+      "dataCount": "Total: {{count}} objects from {{files}} files",
+      "noFiles": "No files uploaded yet",
+      "objects": "objects",
+      "removeFile": "Are you sure you want to remove all data from file \"{{filename}}\"?",
+      "fileRemoved": "✅ Removed {{count}} objects from file \"{{filename}}\"",
+      "exported": "✅ Data has been exported",
+      "noDataToExport": "No data to export",
+      "clearAllConfirm": "Are you sure you want to delete all local data? This operation is irreversible.",
+      "allDataCleared": "✅ All local data has been deleted"
+    },
+    "help": {
+      "csvFormat": "CSV file format",
+      "csvDescription": "CSV file should use semicolon (;) as separator and contain the following columns:",
+      "columns": {
+        "name": "object name (required)",
+        "coordinates": "coordinates (required OR seGPS)",
+        "seGPS": "Space Engineers GPS format (alternative to x,y,z)",
+        "type": "object type (optional)",
+        "diameter": "diameter in km (optional, default 2000 for user objects)",
+        "color": "color in hex (optional, automatically contrasting)",
+        "description": "description (optional)",
+        "resources": "resources (optional)"
+      },
+      "seGPSFormat": "Space Engineers GPS format:",
+      "seGPSExample": "GPS:Name:X:Y:Z:#Color:Size",
+      "seGPSNote": "Where Size is object diameter in meters (optional)",
+      "examples": "Examples:"
+    }
+  },
+  "navigation": {
+    "courseAnalysis": "Course Analysis:",
+    "startPoint": "Start (GPS or name)",
+    "endPoint": "End (GPS or name)",
+    "calculateRoute": "🧭 Calculate Course",
+    "clearRoute": "🗑️ Clear Course",
+    "routeInfo": {
+      "distance": "Distance",
+      "direction": "Direction",
+      "travelTime": "Travel time at",
+      "estimatedTime": "Estimated time",
+      "routeCalculated": "Route calculated",
+      "start": "Start",
+      "end": "End",
+      "flightTime": "Flight time",
+      "obstaclesOnRoute": "⚠️ Obstacles on route:",
+      "gpsPointsForGame": "📍 GPS points for game:",
+      "copyStartGPS": "📋 START",
+      "copyEndGPS": "📋 END",
+      "clickToCopyGPS": "Click button to copy GPS to clipboard",
+      "copiedGPSStart": "📋 Copied GPS START to clipboard!",
+      "copiedGPSEnd": "📋 Copied GPS END to clipboard!",
+      "copyGPSError": "❌ GPS copy error"
+    }
+  }
+}

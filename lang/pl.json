@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Space Engineers 3D Map",
+    "author": "autor: VolkerNemrod, 2025 v.16.08.25"
+  },
+  "ui": {
+    "buttons": {
+      "jump": "▶ SKOK",
+      "view2d": "🗺️ 2D",
+      "myData": "📁 Moje dane"
+    },
+    "placeholders": {
+      "coordinates": "X,Y,Z lub GPS:...",
+      "selectObject": "-- Wybierz obiekt --"
+    },
+    "messages": {
+      "selectObjectOrCoords": "Wybierz obiekt z listy lub podaj współrzędne.",
+      "invalidCoordinates": "Podaj współrzędne w formacie X,Y,Z lub GPS:Nazwa:X:Y:Z...",
+      "targetPoint": "Punkt docelowy",
+      "gpsPoint": "Punkt GPS",
+      "coordinatesPoint": "Punkt współrzędnych",
+      "jumpPoint": "Punkt skoku"
+    },
+    "labels": {
+      "name": "Nazwa",
+      "type": "Typ",
+      "coordinates": "Koordynaty",
+      "diameter": "Średnica",
+      "description": "Opis",
+      "resources": "Surowce",
+      "x": "X",
+      "y": "Y", 
+      "z": "Z",
+      "km": "km",
+      "m": "m"
+    },
+    "clear": {
+      "title": "Wyczyść wszystkie markery i resetuj pola",
+      "cleared": "Wyczyszczono {{count}} markerów",
+      "allCleared": "Wyczyszczono wszystkie markery i pola"
+    }
+  },
+  "controller": {
+    "title": "🎯 Kontroler Punktu",
+    "sections": {
+      "coordinates": "Koordynaty:",
+      "speed": "Prędkość ruchu:",
+      "camera": "Tryb kamery:"
+    },
+    "buttons": {
+      "activate": "▶️ Aktywuj",
+      "deactivate": "⏹️ Wyłącz",
+      "reset": "🔄 Reset (0,0,0)",
+      "copyGPS": "📋 COPY GPS",
+      "pasteGPS": "📥 COPY FROM CLIPBOARD"
+    },
+    "camera": {
+      "follow": "👁️ Śledź punkt",
+      "free": "🖱️ Wolna kamera",
+      "center": "🎯 Centruj na punkt",
+      "followDesc": "Kamera podąża za punktem",
+      "freeDesc": "Normalne sterowanie myszką",
+      "centerDesc": "Skok kamery do punktu"
+    },
+    "speed": {
+      "ms": "{{speed}}m/s",
+      "kms": "{{speed}}km/s"
+    },
+    "messages": {
+      "activated": "Kontroler aktywowany",
+      "deactivated": "Kontroler wyłączony",
+      "copiedGPS": "📋 Skopiowano GPS do schowka!",
+      "loadedGPS": "📥 Załadowano GPS: {{name}}",
+      "sizeChanged": "🎯 Wielkość punktu: {{size}}km",
+      "clipboardNotSupported": "❌ Przeglądarka nie obsługuje odczytu schowka",
+      "invalidGPSCoordinates": "❌ Nieprawidłowe koordynaty GPS",
+      "invalidGPSFormat": "❌ Nieprawidłowy format GPS Space Engineers",
+      "noGPSData": "❌ Schowek nie zawiera danych GPS",
+      "clipboardError": "❌ Błąd odczytu schowka",
+      "copyError": "❌ Błąd kopiowania do schowka"
+    },
+    "instructions": {
+      "title": "Sterowanie:",
+      "wasd": "ruch po płaszczyźnie XZ",
+      "space": "w górę (Y+)",
+      "c": "w dół (Y-)",
+      "mouse": "Kółko myszy nad panelem",
+      "mouseDesc": "wielkość punktu (1-500km)",
+      "note": "Sterowanie aktywne tylko gdy panel otwarty"
+    }
+  },
+  "userData": {
+    "title": "Moje dane lokalizacyjne",
+    "sections": {
+      "upload": "Wgraj plik CSV",
+      "management": "Zarządzanie danymi",
+      "help": "Pomoc"
+    },
+    "buttons": {
+      "selectFile": "📁 Wybierz plik CSV",
+      "refresh": "🔄 Odśwież",
+      "export": "💾 Eksportuj",
+      "clearAll": "🗑️ Wyczyść wszystko",
+      "close": "×"
+    },
+    "upload": {
+      "requiredColumns": "Wymagane kolumny: name + (x,y,z) lub name + seGPS",
+      "optionalColumns": "Opcjonalne: type, diameter, color, description, resources",
+      "newFeature": "Nowe: seGPS - format Space Engineers GPS",
+      "downloadExamples": "📥 Pobierz przykłady:",
+      "fullExample": "📄 Pełny przykład",
+      "gpsExample": "🚀 GPS SE",
+      "standardExample": "📍 Standardowy",
+      "loading": "Wczytywanie pliku...",
+      "success": "✅ Pomyślnie wczytano {{count}} obiektów z pliku \"{{filename}}\"",
+      "error": "❌ Błąd: {{error}}",
+      "fileError": "❌ Błąd odczytu pliku"
+    },
+    "management": {
+      "noData": "Brak lokalnych danych",
+      "dataCount": "Łącznie: {{count}} obiektów z {{files}} plików",
+      "noFiles": "Nie wgrano jeszcze żadnych plików",
+      "objects": "obiektów",
+      "removeFile": "Czy na pewno chcesz usunąć wszystkie dane z pliku \"{{filename}}\"?",
+      "fileRemoved": "✅ Usunięto {{count}} obiektów z pliku \"{{filename}}\"",
+      "exported": "✅ Dane zostały wyeksportowane",
+      "noDataToExport": "Brak danych do eksportu",
+      "clearAllConfirm": "Czy na pewno chcesz usunąć wszystkie lokalne dane? Ta operacja jest nieodwracalna.",
+      "allDataCleared": "✅ Wszystkie lokalne dane zostały usunięte"
+    },
+    "help": {
+      "csvFormat": "Format pliku CSV",
+      "csvDescription": "Plik CSV powinien używać średnika (;) jako separatora i zawierać następujące kolumny:",
+      "columns": {
+        "name": "nazwa obiektu (wymagane)",
+        "coordinates": "współrzędne (wymagane ALBO seGPS)",
+        "seGPS": "format GPS Space Engineers (alternatywa dla x,y,z)",
+        "type": "typ obiektu (opcjonalne)",
+        "diameter": "średnica w km (opcjonalne, domyślnie 2000 dla obiektów użytkownika)",
+        "color": "kolor w hex (opcjonalne, automatycznie kontrastowy)",
+        "description": "opis (opcjonalne)",
+        "resources": "zasoby (opcjonalne)"
+      },
+      "seGPSFormat": "Format Space Engineers GPS:",
+      "seGPSExample": "GPS:Nazwa:X:Y:Z:#Kolor:Rozmiar",
+      "seGPSNote": "Gdzie Rozmiar to średnica obiektu w metrach (opcjonalne)",
+      "examples": "Przykłady:"
+    }
+  },
+  "navigation": {
+    "courseAnalysis": "Wyznacz Kurs:",
+    "startPoint": "Start (GPS lub nazwa)",
+    "endPoint": "Koniec (GPS lub nazwa)",
+    "calculateRoute": "🧭 Oblicz kurs",
+    "clearRoute": "🗑️ Wyczyść kurs",
+    "routeInfo": {
+      "distance": "Dystans",
+      "direction": "Kierunek",
+      "travelTime": "Czas podróży przy",
+      "estimatedTime": "Szacowany czas",
+      "routeCalculated": "Trasa wyznaczona",
+      "start": "Start",
+      "end": "Koniec",
+      "flightTime": "Czas lotu",
+      "obstaclesOnRoute": "⚠️ Przeszkody na trasie:",
+      "gpsPointsForGame": "📍 Punkty GPS dla gry:",
+      "copyStartGPS": "📋 START",
+      "copyEndGPS": "📋 END",
+      "clickToCopyGPS": "Kliknij przycisk aby skopiować GPS do schowka",
+      "copiedGPSStart": "📋 Skopiowano GPS START do schowka!",
+      "copiedGPSEnd": "📋 Skopiowano GPS END do schowka!",
+      "copyGPSError": "❌ Błąd kopiowania GPS"
+    }
+  }
+}

@@ -1,0 +1,417 @@
+/* userDataStyles.css */
+/* Style dla interfejsu zarządzania lokalnymi danymi użytkownika */
+
+/* Przycisk otwierający panel */
+.user-data-toggle {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: 2px solid #FF0000;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    margin-left: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.user-data-toggle:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Główny panel */
+.user-data-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    z-index: 10000;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.user-data-panel.hidden {
+    display: none;
+}
+
+/* Nagłówek panelu */
+.user-data-header {
+    background: linear-gradient(135deg, #0f3460, #16213e);
+    padding: 15px 20px;
+    border-bottom: 1px solid #0f3460;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-data-header h3 {
+    color: #00d4ff;
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 107, 107, 0.2);
+    transform: rotate(90deg);
+}
+
+/* Zawartość panelu */
+.user-data-content {
+    padding: 20px;
+    max-height: calc(80vh - 80px);
+    overflow-y: auto;
+    color: #e0e0e0;
+}
+
+.user-data-content h4 {
+    color: #00d4ff;
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    border-bottom: 1px solid #0f3460;
+    padding-bottom: 5px;
+}
+
+/* Sekcja upload */
+.upload-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: rgba(15, 52, 96, 0.3);
+    border-radius: 8px;
+    border: 1px solid #0f3460;
+}
+
+.file-input-wrapper {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+#csv-file-input {
+    display: none;
+}
+
+.file-input-label {
+    display: inline-block;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: none;
+    text-align: center;
+    min-width: 200px;
+}
+
+.file-input-label:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.upload-info {
+    margin-bottom: 15px;
+}
+
+.upload-info small {
+    color: #b0b0b0;
+    line-height: 1.4;
+}
+
+.upload-status {
+    margin-top: 10px;
+    min-height: 20px;
+}
+
+.upload-status .success {
+    color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    border-left: 3px solid #4CAF50;
+}
+
+.upload-status .error {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    border-left: 3px solid #ff6b6b;
+}
+
+.upload-status .loading {
+    color: #00d4ff;
+    background: rgba(0, 212, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    border-left: 3px solid #00d4ff;
+}
+
+/* Sekcja zarządzania danymi */
+.data-management {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: rgba(15, 52, 96, 0.3);
+    border-radius: 8px;
+    border: 1px solid #0f3460;
+}
+
+.data-stats {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0, 212, 255, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #00d4ff;
+}
+
+.files-list {
+    margin-bottom: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: rgba(22, 33, 62, 0.5);
+    border-radius: 6px;
+    border: 1px solid #0f3460;
+}
+
+.file-info {
+    flex: 1;
+}
+
+.file-info strong {
+    color: #00d4ff;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.file-stats {
+    color: #4CAF50;
+    font-size: 12px;
+    margin-right: 10px;
+}
+
+.file-date {
+    color: #b0b0b0;
+    font-size: 11px;
+}
+
+.remove-file-btn {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.remove-file-btn:hover {
+    background: rgba(255, 107, 107, 0.2);
+    transform: scale(1.1);
+}
+
+.no-files {
+    text-align: center;
+    color: #b0b0b0;
+    font-style: italic;
+    padding: 20px;
+}
+
+/* Przyciski zarządzania */
+.management-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a6268, #6c757d);
+    transform: translateY(-1px);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c82333, #dc3545);
+    transform: translateY(-1px);
+}
+
+.btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Sekcja pomocy */
+.help-section {
+    padding: 20px;
+    background: rgba(15, 52, 96, 0.2);
+    border-radius: 8px;
+    border: 1px solid #0f3460;
+}
+
+.help-section details {
+    margin-top: 10px;
+}
+
+.help-section summary {
+    color: #00d4ff;
+    cursor: pointer;
+    padding: 8px 0;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.help-section summary:hover {
+    color: #33e0ff;
+}
+
+.help-content {
+    margin-top: 10px;
+    padding: 15px;
+    background: rgba(22, 33, 62, 0.3);
+    border-radius: 6px;
+    border-left: 3px solid #00d4ff;
+}
+
+.help-content p {
+    margin: 0 0 10px 0;
+    line-height: 1.5;
+}
+
+.help-content ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.help-content li {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.help-content code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 4px;
+    display: block;
+    margin-top: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #4CAF50;
+    white-space: pre-line;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .user-data-panel {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .user-data-content {
+        padding: 15px;
+    }
+    
+    .upload-section,
+    .data-management,
+    .help-section {
+        padding: 15px;
+    }
+    
+    .management-buttons {
+        flex-direction: column;
+    }
+    
+    .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .remove-file-btn {
+        align-self: flex-end;
+    }
+}
+
+/* Scrollbar styling */
+.user-data-content::-webkit-scrollbar,
+.files-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.user-data-content::-webkit-scrollbar-track,
+.files-list::-webkit-scrollbar-track {
+    background: rgba(15, 52, 96, 0.3);
+    border-radius: 3px;
+}
+
+.user-data-content::-webkit-scrollbar-thumb,
+.files-list::-webkit-scrollbar-thumb {
+    background: #00d4ff;
+    border-radius: 3px;
+}
+
+.user-data-content::-webkit-scrollbar-thumb:hover,
+.files-list::-webkit-scrollbar-thumb:hover {
+    background: #33e0ff;
+}

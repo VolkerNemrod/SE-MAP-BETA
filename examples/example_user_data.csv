@@ -1,0 +1,8 @@
+name;type;x;y;z;diameter;color;objectType;description;resources;poeticDescription;gravityRange;containedObjects;seGPS
+Moja Baza Alpha;Stacja kosmiczna;500000;100000;750000;10;0x00FF00;user_object;Główna baza operacyjna gracza. Centrum dowodzenia i produkcji.;żelazo, nikiel, krzem, platyna;Srebrna twierdza unosi się w kosmicznej pustce, pulsując światłem życia i nadziei. To dom wśród gwiazd.;;;
+Kopalnia Beta;Kopalnia;-200000;50000;300000;10;0xFFFF00;user_object;Automatyczna kopalnia asteroid. Wydobywa surowce z pobliskich asteroid.;uran, złoto, srebro, kobalt;Mechaniczne szczęki gryzą kamień i metal, wydobywając skarby ukryte w kosmicznych głazach.;;;
+Stacja Tankowania Gamma;Stacja paliwa;1000000;-500000;200000;10;0x0080FF;user_object;Stacja tankowania wodoru i tlenu dla statków.;lód, wodór, tlen;Oaza dla podróżników kosmosu, gdzie statki mogą napić się życiodajnych gazów.;;;
+Punkt Obserwacyjny Delta;Obserwatorium;-800000;200000;-400000;10;0xFF8000;user_object;Stacja obserwacyjna monitorująca ruch w sektorze.;krzem, nikiel, żelazo;Samotne oko w ciemności, czuwające nad bezpieczeństwem sektora.;;;
+Fabryka Epsilon;Fabryka;300000;-100000;600000;10;0x8000FF;user_object;Zautomatyzowana fabryka produkująca komponenty statków.;żelazo, nikiel, krzem, kobalt, srebro;Serce przemysłu, gdzie metal i krzem łączą się w taniec tworzenia.;;;
+Baza GPS Zeta;Stacja kosmiczna;;;;10;;user_object;Baza dodana przez GPS Space Engineers;żelazo, nikiel;Nowa baza utworzona z współrzędnych GPS.;;;GPS:Baza GPS Zeta:1500000:800000:-300000:#FF4444:
+Kopalnia GPS Eta;Kopalnia;;;;10;;user_object;Kopalnia z danymi GPS;uran, złoto;Kopalnia zlokalizowana przez GPS.;;;GPS:Kopalnia GPS Eta:-1000000:-200000:900000:#44FF44:

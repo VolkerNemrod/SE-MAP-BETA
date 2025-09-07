@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Space Engineers 3D Map</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="userDataStyles.css">
+</head>
+<body>
+    <div id="container"></div>
+    <div id="view2d-container">
+        <canvas id="view2d-canvas"></canvas>
+    </div>
+    <div id="top-bar">
+        <span id="aliens-title">[SE-MAP]</span>
+        <select id="object-dropdown"><option value="" data-i18n="ui.placeholders.selectObject">-- Obiekt --</option></select>
+        <input id="coords-input" placeholder="X,Y,Z lub GPS:..." type="text" data-i18n="ui.placeholders.coordinates">
+        <button id="jump-btn" data-i18n="ui.buttons.jump">▶ SKOK</button>
+        <button id="view-toggle-btn" data-i18n="ui.buttons.view2d">🗺️ 2D</button>
+        <button id="open-user-data" class="user-data-toggle" data-i18n="ui.buttons.myData">📁 Moje dane</button>
+    </div>
+    <div id="side-info-panel">
+        <div id="object-info"></div>
+    </div>
+    <div id="author-info">
+        autor: <b>VolkerNemrod</b>, 2025 v.16.08.25
+    </div>
+   <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6B9GEQ7PVH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-6B9GEQ7PVH');
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Global variables declaration
+        let scene, camera, renderer;
+        let stars = [];
+        let asteroids = [];
+        let dangerZone = null;
+        let gridHelper;
+        let isMouseDown = false;
+        let mouseButton = 0;
+        let previousMousePosition = { x: 0, y: 0 };
+        let spaceEngineersData = [];
+        let selectedObjects = new Set();
+        
+        // Globalna funkcja do otwierania panelu
+        function toggleUserDataPanel() {
+            if (window.userDataUI) {
+                window.userDataUI.togglePanel();
+            }
+        }
+    </script>
+    <script src="lang/lang.js"></script>
+    <script src="dataLoader.js"></script>
+    <script src="localData.js"></script>
+    <script src="helpers.js"></script>
+    <script src="markerManager.js"></script>
+    <script src="scene.js"></script>
+    <script src="ui.js"></script>
+    <script src="navigation.js"></script>
+    <script src="navigation2.js"></script>
+    <script src="coordinateController.js"></script>
+    <script src="mobile.js"></script>
+    <script src="userDataUI.js"></script>
+    <script src="view2d.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

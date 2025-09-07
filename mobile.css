@@ -1,0 +1,294 @@
+/* ============================================
+   SE-MAP Mobile Optimizations
+   Mobile-specific styles for Space Engineers 3D Map
+   ============================================ */
+
+/* ============================================
+   MOBILE BREAKPOINTS
+   ============================================ */
+@media screen and (max-width: 768px) {
+    /* ============================================
+       TOP BAR MOBILE OPTIMIZATION
+       ============================================ */
+    #top-bar {
+        height: auto;
+        min-height: 50px;
+        flex-direction: column;
+        padding: 8px 12px;
+        gap: 8px;
+        font-size: 0.9em;
+    }
+    
+    #aliens-title {
+        font-size: 0.9em;
+        padding: 2px 12px;
+        margin-right: 0;
+        margin-bottom: 4px;
+        letter-spacing: 1.5px;
+    }
+    
+    /* Navigation controls row */
+    .mobile-nav-row {
+        display: flex;
+        width: 100%;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    #object-dropdown {
+        flex: 1;
+        min-width: 120px;
+        font-size: 0.85em;
+        padding: 4px 6px;
+    }
+    
+    #coords-input {
+        flex: 1;
+        min-width: 100px;
+        font-size: 0.85em;
+        padding: 4px 6px;
+    }
+    
+    #jump-btn {
+        padding: 4px 12px;
+        font-size: 0.85em;
+        white-space: nowrap;
+    }
+    
+    /* ============================================
+       ROUTE PLANNING MOBILE
+       ============================================ */
+    #route-section {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        border-left: none !important;
+        border-top: 2px solid #13fd87 !important;
+        padding-top: 8px !important;
+        width: 100%;
+        flex-direction: column;
+        gap: 6px;
+        align-items: stretch;
+    }
+    
+    .mobile-route-row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        width: 100%;
+    }
+    
+    #route-start, #route-end {
+        flex: 1;
+        font-size: 0.8em !important;
+        width: auto !important;
+        padding: 4px 6px !important;
+    }
+    
+    #calculate-route-btn, #clear-route-btn {
+        padding: 4px 8px !important;
+        font-size: 0.8em !important;
+        white-space: nowrap;
+    }
+    
+    /* ============================================
+       SIDE PANEL MOBILE
+       ============================================ */
+    #side-info-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 0;
+        width: 100vw;
+        max-width: none;
+        min-width: auto;
+        max-height: 40vh;
+        border-radius: 12px 12px 0 0;
+        border-right: none;
+        border-top: 2px solid #17ffb2;
+        font-size: 0.9em;
+        z-index: 25;
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    #side-info-panel.mobile-visible {
+        transform: translateY(0);
+    }
+    
+    #side-info-panel.mobile-hidden {
+        transform: translateY(calc(100% - 40px));
+    }
+    
+    /* Panel header for mobile */
+    .mobile-panel-header {
+        background: rgba(28, 64, 42, 0.95);
+        padding: 8px 16px;
+        border-bottom: 1px solid #17ffb2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .mobile-panel-title {
+        color: #67fda9;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+    
+    .mobile-panel-toggle {
+        color: #67fda9;
+        font-size: 1.2em;
+        transform: rotate(0deg);
+        transition: transform 0.3s ease;
+    }
+    
+    .mobile-panel-toggle.expanded {
+        transform: rotate(180deg);
+    }
+    
+    /* ============================================
+       MOBILE CONTROL HINTS
+       ============================================ */
+    .mobile-controls-hint {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background: rgba(20, 40, 25, 0.95);
+        color: #67fda9;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 0.85em;
+        text-align: left;
+        z-index: 30;
+        border: 2px solid #13fd87;
+        opacity: 1;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        line-height: 1.4;
+        backdrop-filter: blur(5px);
+        animation: slideInHint 0.5s ease-out;
+    }
+    
+    @keyframes slideInHint {
+        0% { 
+            opacity: 0; 
+            transform: translateY(100%);
+        }
+        100% { 
+            opacity: 1; 
+            transform: translateY(0);
+        }
+    }
+    
+    /* ============================================
+       MOBILE AUTOCOMPLETE FIXES
+       ============================================ */
+    
+    /* Ensure autocomplete suggestion boxes work on mobile */
+    @media (max-width: 768px) {
+        /* Fix z-index for autocomplete suggestions */
+        div[style*="position: absolute"][style*="z-index: 1000"] {
+            z-index: 10000 !important;
+            max-height: 120px !important;
+            font-size: 0.8em !important;
+        }
+        
+        /* Make autocomplete items more touch-friendly */
+        div[style*="position: absolute"] div[style*="cursor: pointer"] {
+            padding: 10px 8px !important;
+            min-height: 20px !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Improve visibility of autocomplete on mobile */
+        div[style*="background: #13281b"] {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+            border: 1.5px solid #13fd87 !important;
+        }
+    }
+    
+    /* ============================================
+       TOUCH FEEDBACK
+       ============================================ */
+    .touch-feedback {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border: 2px solid #13fd87;
+        border-radius: 50%;
+        background: rgba(19, 253, 135, 0.1);
+        pointer-events: none;
+        z-index: 1000;
+        transform: scale(0);
+        animation: touchRipple 0.6s ease-out;
+    }
+    
+    @keyframes touchRipple {
+        0% {
+            transform: scale(0);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+    
+    /* ============================================
+       AUTHOR INFO MOBILE
+       ============================================ */
+    #author-info {
+        display: none;
+    }
+}
+
+/* ============================================
+   LARGER MOBILE DEVICES (TABLETS)
+   ============================================ */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    #top-bar {
+        font-size: 0.95em;
+        padding: 8px 16px;
+    }
+    
+    #coords-input {
+        width: 150px;
+    }
+    
+    #side-info-panel {
+        width: 380px;
+        max-width: 45vw;
+    }
+}
+
+/* ============================================
+   LANDSCAPE MOBILE ORIENTATION
+   ============================================ */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+    #top-bar {
+        font-size: 0.8em;
+        min-height: 40px;
+        padding: 4px 8px;
+    }
+    
+    #aliens-title {
+        font-size: 0.8em;
+        padding: 2px 8px;
+    }
+    
+    #side-info-panel {
+        max-height: 60vh;
+        font-size: 0.85em;
+    }
+    
+    .mobile-controls-hint {
+        bottom: 5px;
+        padding: 4px 8px;
+        font-size: 0.7em;
+    }
+}

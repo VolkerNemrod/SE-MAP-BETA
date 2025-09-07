@@ -1,0 +1,6 @@
+name;type;seGPS;description
+Moja Baza;Stacja;GPS:Moja Baza:100000:2000:3000:#FF0000:20;Główna baza operacyjna (5km)
+Kopalnia;Kopalnia;GPS:Kopalnia:5000:-10000:8000:#00FF00:20;Kopalnia rud (1.5km)
+Stacja Handlowa;Handel;GPS:Handel:-3000:40000:-2000:#0000FF:20;Centrum handlowe (3km)
+Punkt Kontrolny;Kontrola;GPS:Kontrola:0:0:100000:#FFFF00:800;Punkt obserwacyjny (800m)
+Mały Outpost;Outpost;GPS:Outpost:7000:30000:-5000:#FF8800:20;Mały posterunek (500m)
