@@ -24,50 +24,139 @@ SE-MAP to webowa aplikacja open source, umożliwiająca wyświetlanie oraz inter
 FUNKCJONALNOŚCI
 ===============
 
-- Trójwymiarowa mapa - realistyczna prezentacja planet, księżyców, wormhole i niebezpiecznych stref.
-- Widok 2D - alternatywny widok mapy w stylu Elite Dangerous z funkcjami zoom i panning.
-- Wyszukiwanie oraz filtrowanie obiektów.
-- Wyznaczanie kursów z uwzględnieniem przeszkód i bezpiecznych dystansów.
-- Interfejs responsywny z pełnym wsparciem mobilnym (obsługa dotyku, gestów, paneli slajdowanych).
-- Szczegółowy panel informacyjny każdego obiektu.
-- Łatwa edycja i rozszerzalność danych (CSV).
-- System wielojęzyczny z automatyczną detekcją języka przeglądarki (Polski/Angielski).
-- Kontroler Punktu z funkcją kopiowania GPS z Space Engineers.
-- Zarządzanie danymi użytkownika z importem/eksportem CSV.
+PODSTAWOWE FUNKCJE:
+- Trójwymiarowa mapa - realistyczna prezentacja planet, księżyców, wormhole i niebezpiecznych stref
+- Widok 2D - alternatywny widok mapy w stylu Elite Dangerous z funkcjami zoom i panning
+- Wyszukiwanie oraz filtrowanie obiektów z dropdown i wpisywaniem współrzędnych
+- Interfejs responsywny z pełnym wsparciem mobilnym (obsługa dotyku, gestów, paneli slajdowanych)
+- Szczegółowy panel informacyjny każdego obiektu
+- System wielojęzyczny z automatyczną detekcją języka przeglądarki (Polski/Angielski)
+
+ZAAWANSOWANE FUNKCJE NAWIGACJI:
+- **Wyznaczanie kursów** z inteligentną detekcją przeszkód i bezpiecznych dystansów
+- **Markery tras** - małe (1km), złote, lekko pulsujące markery pokazujące punkty START i END
+- **Analiza kolizji** - system sprawdza czy trasa przechodzi przez planety/księżyce
+- **Bezpieczne dystanse** - automatyczne obliczanie marginesów bezpieczeństwa
+- **Kopiowanie GPS** - przyciski do kopiowania współrzędnych START/END do schowka w formacie Space Engineers
+- **Zachowanie danych** - współrzędne i wybrane obiekty nie znikają po obliczeniu trasy (tylko po wciśnięciu czerwonego X)
+- **Automatyczne kadrowanie** - kamera automatycznie centruje się na trasie
+
+SYSTEM MARKERÓW:
+- **MarkerManager** - centralny system zarządzania wszystkimi markerami na mapie
+- **Różne typy markerów**: jump (żółte), route (złote), controller (cyjan), custom
+- **Animacje pulsowania** - każdy typ markera ma własną animację
+- **Automatyczne czyszczenie** - limit markerów z automatycznym usuwaniem najstarszych
+- **Zarządzanie zasobami** - automatyczne zwalnianie pamięci przy usuwaniu markerów
+
+ZARZĄDZANIE DANYMI UŻYTKOWNIKA:
+- **Import CSV** - możliwość dodawania własnych obiektów z plików CSV
+- **Obsługa formatów GPS** - import punktów w formacie Space Engineers GPS
+- **Zarządzanie plikami** - podgląd, usuwanie i eksport załadowanych danych
+- **Przykłady** - gotowe pliki przykładowe do pobrania
+- **Walidacja danych** - sprawdzanie poprawności importowanych plików
+- **Odświeżanie mapy** - automatyczna aktualizacja mapy po dodaniu/usunięciu danych
+
+KONTROLER PUNKTU:
+- **Kopiowanie GPS** - funkcja kopiowania współrzędnych w formacie Space Engineers
+- **Powiadomienia** - wizualne potwierdzenia kopiowania do schowka
+- **Fallback** - wsparcie dla starszych przeglądarek bez Clipboard API
+
+---
+
+INSTRUKCJA UŻYTKOWANIA
+======================
+
+PODSTAWOWA NAWIGACJA:
+1. **Wybór obiektu**: Użyj dropdown "-- Wybierz obiekt --" lub wpisz współrzędne/GPS
+2. **Skok do obiektu**: Kliknij "▶ SKOK" aby przejść do wybranego miejsca
+3. **Widok 2D/3D**: Przełączaj między widokami przyciskiem "🗺️ 2D"
+4. **Panel informacyjny**: Kliknij na obiekt aby zobaczyć szczegóły
+
+PLANOWANIE TRAS:
+1. **Punkt startu**: Wpisz współrzędne, GPS lub nazwę obiektu w polu "Start"
+2. **Punkt końca**: Wpisz współrzędne, GPS lub nazwę obiektu w polu "Koniec"
+3. **Oblicz kurs**: Kliknij "🧭 Oblicz kurs"
+4. **Kopiuj GPS**: Użyj przycisków "📋 START" i "📋 END" aby skopiować współrzędne
+5. **Czyszczenie**: Kliknij czerwony "✖" aby wyczyścić trasę i pola
+
+FORMATY WSPÓŁRZĘDNYCH:
+- **Współrzędne**: `1000, 2000, 3000`
+- **GPS Space Engineers**: `GPS:Nazwa:1000:2000:3000:#FF0000:`
+- **Nazwa obiektu**: `Navia` (wyszukiwanie po nazwie)
+
+ZARZĄDZANIE DANYMI:
+1. **Otwórz panel**: Kliknij "📁 Moje dane"
+2. **Wybierz plik**: Kliknij "Wybierz plik CSV" i wybierz swój plik
+3. **Sprawdź dane**: Panel pokaże liczbę załadowanych obiektów
+4. **Zarządzaj**: Używaj przycisków Odśwież, Eksportuj, Wyczyść
+5. **Usuń plik**: Kliknij 🗑️ przy konkretnym pliku
+
+OBSŁUGA MOBILNA:
+- **Dotyk**: Przeciągaj palcem aby obracać mapę
+- **Pinch**: Ściśnij/rozciągnij palce aby zoomować
+- **Podwójne dotknięcie**: Szybki zoom
+- **Panel**: Przesuń panel informacyjny w górę/dół
 
 ---
 
 STRUKTURA PLIKÓW
 ================
 
-- index.html – Główna strona, ładowanie zależności.
-- main.js – Uruchamianie mapy i ładowanie danych.
-- scene.js – Renderowanie sceny 3D, animacje, efekty.
-- view2d.js – Widok 2D mapy z funkcjami zoom i panning.
-- ui.js – Interfejs użytkownika, panele, markery.
-- navigation.js / navigation2.js – Obliczanie zasięgów, planowanie trasy, detekcja przeszkód.
-- coordinateController.js – Kontroler punktu z funkcjami GPS.
-- userDataUI.js – Zarządzanie danymi użytkownika.
-- dataLoader.js – Parser i walidacja danych CSV.
-- helpers.js – Funkcje pomocnicze.
-- style.css, mobile.css, userDataStyles.css – Stylizacja, responsywność.
-- mobile.js – Pełne wsparcie dotyku i optymalizacje mobilne.
-- lang/ – Folder z plikami tłumaczeń.
-  - lang.js – System zarządzania językami.
-  - pl.json – Tłumaczenia polskie.
-  - en.json – Tłumaczenia angielskie.
-- uklad.csv – Dane układu (planety, księżyce, wormhole, strefy).
-- LICENSE – Treść licencji GNU GPL v3.
+PLIKI GŁÓWNE:
+- index.html – Główna strona, ładowanie zależności
+- main.js – Uruchamianie mapy i ładowanie danych
+- scene.js – Renderowanie sceny 3D, animacje, efekty
+- view2d.js – Widok 2D mapy z funkcjami zoom i panning
+
+INTERFEJS I NAWIGACJA:
+- ui.js – Interfejs użytkownika, panele, markery
+- navigation.js / navigation2.js – Obliczanie zasięgów, planowanie trasy, detekcja przeszkód
+- coordinateController.js – Kontroler punktu z funkcjami GPS
+- userDataUI.js – Zarządzanie danymi użytkownika
+- markerManager.js – Centralny system zarządzania markerami
+
+DANE I POMOCNICZE:
+- dataLoader.js – Parser i walidacja danych CSV
+- localData.js – Zarządzanie lokalnymi danymi użytkownika
+- helpers.js – Funkcje pomocnicze
+- mobile.js – Pełne wsparcie dotyku i optymalizacje mobilne
+
+STYLIZACJA:
+- style.css – Główne style aplikacji
+- mobile.css – Style responsywne i mobilne
+- userDataStyles.css – Style panelu danych użytkownika
+
+JĘZYKI:
+- lang/ – Folder z plikami tłumaczeń
+  - lang.js – System zarządzania językami
+  - pl.json – Tłumaczenia polskie
+  - en.json – Tłumaczenia angielskie
+
+DANE:
+- uklad.csv – Dane układu (planety, księżyce, wormhole, strefy)
+- examples/ – Przykładowe pliki CSV dla użytkowników
+  - example_user_data.csv – Pełny przykład z wszystkimi kolumnami
+  - test_se_gps.csv – Przykład z formatem GPS Space Engineers
+  - test_gps.csv – Standardowy przykład GPS
+
+LICENCJA:
+- LICENSE.txt – Treść licencji GNU GPL v3
 
 ---
 
 INSTRUKCJA URUCHOMIENIA
 =======================
 
-1. Pobierz wszystkie pliki projektu do jednego folderu.
+1. Pobierz wszystkie pliki projektu do jednego folderu
 2. Dla pełnego działania otwórz `index.html` poprzez lokalny serwer web (np. Live Server, polecenie: `npx serve .`)
-3. Edytuj `uklad.csv`, aby rozszerzyć własny układ.
-4. Testuj zarówno na komputerze, jak i urządzeniu mobilnym.
+3. Edytuj `uklad.csv`, aby rozszerzyć własny układ
+4. Dodaj własne dane przez panel "📁 Moje dane"
+5. Testuj zarówno na komputerze, jak i urządzeniu mobilnym (UWAGA! wersja mobilna jeszcze nie gotowa)
+
+WYMAGANIA:
+- Nowoczesna przeglądarka z obsługą WebGL
+- JavaScript włączony
+- Dla pełnej funkcjonalności: lokalny serwer HTTP
 
 ---
 
@@ -158,13 +247,91 @@ window.addEventListener('languageChanged', () => {
 OPIS FORMATU DANYCH
 ===================
 
-Każdy wiersz w pliku `uklad.csv` reprezentuje pojedynczy obiekt kosmiczny, strefę lub wormhole.  
+PLIK SYSTEMOWY (uklad.csv):
+Każdy wiersz reprezentuje pojedynczy obiekt kosmiczny, strefę lub wormhole.
+
 Przykładowa linia:
-
+```
 name;type;x;y;z;diameter;color;objectType;description;resources;poeticDescription;gravityRange;containedObjects
-Navia (Kepler-444b);Planeta;0.50;0.50;0.50;120;0xFF0000;planet;...
+Navia (Kepler-444b);Planeta;0.50;0.50;0.50;120;0xFF0000;planet;Planeta skalista...;Żelazo, Nikiel;Czerwona planeta...;300000;
+```
 
-Szczegółowa dokumentacja znajduje się w kodzie oraz komentarzach.
+PLIKI UŻYTKOWNIKA (CSV):
+Obsługiwane formaty dla własnych danych:
+
+STANDARDOWY FORMAT:
+```
+name;type;x;y;z;diameter;color;description
+Moja Baza;Stacja;1000;2000;3000;5000;0xFF0000;Główna baza operacyjna
+```
+
+FORMAT GPS SPACE ENGINEERS:
+```
+name;type;seGPS;description
+Moja Baza;Stacja;GPS:Moja Baza:1000:2000:3000:#FF0000:5000;Baza z GPS (5km średnica)
+```
+
+KOLUMNY:
+- **name** (wymagane) - Nazwa obiektu
+- **type** (opcjonalne) - Typ obiektu (Stacja, Baza, Posterunek, itp.)
+- **x, y, z** (wymagane dla standardowego) - Współrzędne
+- **seGPS** (alternatywa dla x,y,z) - Format GPS Space Engineers
+- **diameter** (opcjonalne) - Średnica w metrach
+- **color** (opcjonalne) - Kolor w formacie hex (0xFF0000)
+- **description** (opcjonalne) - Opis obiektu
+- **resources** (opcjonalne) - Dostępne surowce
+
+OBSŁUGIWANE SEPARATORY:
+- Średnik (;) - preferowany
+- Przecinek (,) - obsługiwany
+- Tabulator - obsługiwany
+
+---
+
+SYSTEM MARKERÓW I ANIMACJI
+==========================
+
+TYPY MARKERÓW:
+- **jump** - Żółte markery punktów docelowych (delikatne pulsowanie)
+- **route** - Złote markery tras (subtelne pulsowanie, 1km średnica)
+- **controller** - Cyjan markery kontrolera (intensywne pulsowanie)
+- **custom** - Niestandardowe markery użytkownika
+
+ANIMACJE:
+- **Pulsowanie rozmiaru** - markery zmieniają wielkość w czasie
+- **Pulsowanie przezroczystości** - zmiana opacity dla lepszej widoczności
+- **Efekt świecenia** - dodatkowy blask dla markerów tras
+
+ZARZĄDZANIE:
+- **Automatyczne czyszczenie** - limit 10 markerów, najstarsze są usuwane
+- **Zarządzanie pamięcią** - automatyczne zwalnianie zasobów WebGL
+- **Centralne zarządzanie** - wszystkie markery przez MarkerManager
+
+---
+
+PLANOWANIE TRAS - SZCZEGÓŁY
+===========================
+
+ALGORYTM DETEKCJI KOLIZJI:
+1. **Linia trasy** - obliczenie prostej między punktami START i END
+2. **Sprawdzenie obiektów** - dla każdej planety/księżyca w systemie:
+   - Obliczenie najbliższego punktu na linii trasy do centrum obiektu
+   - Sprawdzenie czy punkt jest w zasięgu trasy (między START a END)
+   - Porównanie odległości z promieniem obiektu + margines bezpieczeństwa
+3. **Margines bezpieczeństwa** - 100m dodatkowy margines dla statku
+4. **Raportowanie** - lista wszystkich obiektów na trasie z odległościami
+
+BEZPIECZNE DYSTANSE:
+- **Planety** - promień × 2.5 (silna grawitacja)
+- **Księżyce** - promień × 1.5 (umiarkowana grawitacja)  
+- **Asteroidy** - promień × 0.5 (słaba grawitacja)
+- **Inne obiekty** - promień × 0.8 (domyślny zasięg)
+
+FUNKCJE GPS:
+- **Format SE** - `GPS:Nazwa:X:Y:Z:#Kolor:`
+- **Kopiowanie** - automatyczne kopiowanie do schowka systemowego
+- **Powiadomienia** - wizualne potwierdzenie kopiowania
+- **Fallback** - wsparcie starszych przeglądarek
 
 ---
 
@@ -180,12 +347,56 @@ WIDOK 2D:
 WIDOK 3D:
 - Pełne wsparcie dla proporcjonalnych rozmiarów obiektów
 - Realistyczne odległości i skale
+- Optymalizacja renderowania dla dużej liczby obiektów
 
 SYSTEM TŁUMACZEŃ:
 - Hierarchiczna struktura JSON z fallback do polskiego
 - Automatyczna detekcja języka przeglądarki
 - Interpolacja zmiennych w tłumaczeniach
 - Event-driven aktualizacja interfejsu
+
+WYDAJNOŚĆ:
+- **WebGL** - wykorzystanie akceleracji sprzętowej
+- **Zarządzanie pamięcią** - automatyczne czyszczenie nieużywanych zasobów
+- **Optymalizacja mobilna** - dostosowane renderowanie dla urządzeń mobilnych
+- **Lazy loading** - ładowanie danych na żądanie
+
+KOMPATYBILNOŚĆ:
+- **Nowoczesne przeglądarki** - Chrome, Firefox, Safari, Edge
+- **Urządzenia mobilne** - iOS Safari, Android Chrome
+- **Fallback** - graceful degradation dla starszych przeglądarek
+
+---
+
+ROZWIĄZYWANIE PROBLEMÓW
+======================
+
+CZĘSTE PROBLEMY:
+
+**Przycisk "Moje dane" nie działa:**
+- Sprawdź konsolę przeglądarki (F12)
+- Upewnij się, że JavaScript jest włączony
+- Spróbuj odświeżyć stronę (Ctrl+F5)
+
+**Nie można załadować pliku CSV:**
+- Sprawdź format pliku (UTF-8, separatory)
+- Upewnij się, że wymagane kolumny są obecne
+- Sprawdź przykładowe pliki w folderze examples/
+
+**Mapa nie ładuje się:**
+- Sprawdź czy używasz lokalnego serwera HTTP
+- Sprawdź konsolę na błędy WebGL
+- Spróbuj innej przeglądarki
+
+**Problemy z wydajnością:**
+- Zmniejsz liczbę obiektów na mapie
+- Wyczyść stare markery przyciskiem X
+- Zamknij inne karty przeglądarki
+
+**Problemy mobilne:**
+- Sprawdź czy dotyk jest włączony
+- Spróbuj obrócić urządzenie
+- Sprawdź czy masz wystarczająco pamięci
 
 ---
 
@@ -215,6 +426,23 @@ Zobacz szczegóły w Licencji GNU GPL.
 Pełny tekst licencji GNU GPL v3 znajdziesz w pliku LICENSE lub pod adresem: https://www.gnu.org/licenses/gpl-3.0.html
 
 W przypadku udostępniania, kopiowania lub modyfikacji projektu, należy zachować informację o autorze, powyższy zapis, oraz treść pliku LICENSE w repozytorium lub dystrybucji.
+
+---
+
+HISTORIA ZMIAN
+==============
+
+WERSJA 16.08.25:
+- ✅ Dodano zaawansowany system planowania tras z detekcją kolizji
+- ✅ Implementowano MarkerManager - centralny system zarządzania markerami
+- ✅ Dodano małe (1km), złote, pulsujące markery tras
+- ✅ Zachowanie współrzędnych po obliczeniu trasy (czyszczenie tylko przyciskiem X)
+- ✅ Funkcje kopiowania GPS do schowka w formacie Space Engineers
+- ✅ Panel zarządzania danymi użytkownika z importem/eksportem CSV
+- ✅ Obsługa formatów GPS Space Engineers w importowanych danych
+- ✅ Przykładowe pliki CSV dla użytkowników
+- ✅ Poprawki wydajności i zarządzania pamięcią
+- ✅ Rozszerzona dokumentacja i instrukcje użytkowania
 
 ---
 
