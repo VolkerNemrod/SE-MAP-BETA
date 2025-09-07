@@ -1,6 +1,10 @@
 SE-MAP – Space Engineers 3D Map (wersja webowa)
 ===============================================
 
+Wersja DEMO: https://se-map-beta.macierz.eu/
+YT: https://www.youtube.com/watch?v=1Dc1jhDcPYU&list=PLdXbPExznPQUsj06RhLhrG6WUmdLTG3ic 
+Kontakt: se-map@macierz.eu
+
 Interaktywna, trójwymiarowa mapa układu planetarnego zainspirowana światem Space Engineers.
 
 Autor: VolkerNemrod
@@ -397,6 +401,13 @@ CZĘSTE PROBLEMY:
 - Sprawdź czy dotyk jest włączony
 - Spróbuj obrócić urządzenie
 - Sprawdź czy masz wystarczająco pamięci
+
+**Serwer cache'uje stare pliki:**
+- Problem: Serwer pamięta stare wersje plików JS/CSS mimo zmian
+- Rozwiązanie: Pliki mają parametry cache-busting (?v=07.09.2025)
+- Jeśli problem nadal występuje: Zmień wersję w index.html na nowszą
+- Alternatywnie: Użyj trybu incognito lub wyczyść cache serwera
+- Dla deweloperów: Restartuj lokalny serwer HTTP
 
 ---
 
