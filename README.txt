@@ -60,6 +60,14 @@ ZARZĄDZANIE DANYMI UŻYTKOWNIKA:
 - **Walidacja danych** - sprawdzanie poprawności importowanych plików
 - **Odświeżanie mapy** - automatyczna aktualizacja mapy po dodaniu/usunięciu danych
 
+OBIEKTY TYMCZASOWE (temp-objekty.csv):
+- **Automatyczne ładowanie** - system automatycznie ładuje obiekty z pliku temp-objekty.csv
+- **Znaki wykrzyknika** - obiekty wyświetlane jako trójwymiarowe znaki wykrzyknika (!)
+- **Kolory z pliku** - obsługa kolorów zdefiniowanych w formacie Space Engineers GPS
+- **Automatyczne odświeżanie** - plik jest odświeżany przy każdym wgraniu nowej wersji
+- **Klikalne obiekty** - wykrzykniki są klikalne i pokazują panel informacyjny
+- **Bufor bezpieczeństwa** - opcja dodania 100m buforu od końca zasięgu grawitacji w GPS
+
 KONTROLER PUNKTU:
 - **Kopiowanie GPS** - funkcja kopiowania współrzędnych w formacie Space Engineers
 - **Powiadomienia** - wizualne potwierdzenia kopiowania do schowka
@@ -138,6 +146,7 @@ JĘZYKI:
 
 DANE:
 - uklad.csv – Dane układu (planety, księżyce, wormhole, strefy)
+- temp-objekty.csv – Obiekty tymczasowe wyświetlane jako wykrzykniki
 - examples/ – Przykładowe pliki CSV dla użytkowników
   - example_user_data.csv – Pełny przykład z wszystkimi kolumnami
   - test_se_gps.csv – Przykład z formatem GPS Space Engineers
@@ -275,6 +284,15 @@ name;type;seGPS;description
 Moja Baza;Stacja;GPS:Moja Baza:1000:2000:3000:#FF0000:5000;Baza z GPS (5km średnica)
 ```
 
+PLIK OBIEKTÓW TYMCZASOWYCH (temp-objekty.csv):
+Specjalny plik dla obiektów wyświetlanych jako wykrzykniki (!):
+
+```
+name;type;seGPS;description
+Punkt Kontrolny;temp-obj;GPS:Punkt Kontrolny:137158.17:0.00:119098.11:#FFFFFF:;Punkt kontrolny misji
+Alarm;temp-obj;GPS:Alarm:150000:5000:120000:#FF0000:;Strefa alarmowa
+```
+
 KOLUMNY:
 - **name** (wymagane) - Nazwa obiektu
 - **type** (opcjonalne) - Typ obiektu (Stacja, Baza, Posterunek, itp.)
@@ -284,6 +302,15 @@ KOLUMNY:
 - **color** (opcjonalne) - Kolor w formacie hex (0xFF0000)
 - **description** (opcjonalne) - Opis obiektu
 - **resources** (opcjonalne) - Dostępne surowce
+
+SPECJALNE WŁAŚCIWOŚCI temp-objekty.csv:
+- **Automatyczne ładowanie** - plik ładowany przy starcie aplikacji
+- **Cache busting** - system automatycznie odświeża plik przy każdej zmianie
+- **ObjectType** - wszystkie obiekty automatycznie otrzymują objectType="temp-obj"
+- **Wizualizacja** - obiekty wyświetlane jako trójwymiarowe znaki wykrzyknika
+- **Kolory** - obsługa kolorów z formatu GPS (#FFFFFF, #FF0000, itp.)
+- **Kliknięcie** - obiekty są klikalne i pokazują panel informacyjny z GPS
+- **Bufor bezpieczeństwa** - checkbox do dodania 100m buforu od zasięgu grawitacji
 
 OBSŁUGIWANE SEPARATORY:
 - Średnik (;) - preferowany
@@ -441,6 +468,29 @@ W przypadku udostępniania, kopiowania lub modyfikacji projektu, należy zachowa
 ---
 
 HISTORIA ZMIAN
+
+WERSJA 15.09.25:
+- ✅ Dodano system obiektów tymczasowych (temp-objekty.csv)
+- ✅ Obiekty wyświetlane jako trójwymiarowe znaki wykrzyknika (!)
+- ✅ Automatyczne ładowanie i odświeżanie pliku temp-objekty.csv z cache busting
+- ✅ Obsługa kolorów z formatu Space Engineers GPS (#FFFFFF, #FF0000, itp.)
+- ✅ Naprawiono kliknięcie obiektów temp-obj (recursive raycaster intersection)
+- ✅ Dodano checkbox buforu bezpieczeństwa +100m od zasięgu grawitacji w GPS
+- ✅ Inteligentne obliczanie bezpiecznych współrzędnych na podstawie kierunku kamery
+- ✅ Rozszerzona obsługa formatu seGPS w uklad.csv
+- ✅ Aktualizacja dokumentacji z opisem nowych funkcji
+
+WERSJA 16.08.25:
+- ✅ Dodano zaawansowany system planowania tras z detekcją kolizji
+- ✅ Implementowano MarkerManager - centralny system zarządzania markerami
+- ✅ Dodano małe (1km), złote, pulsujące markery tras
+- ✅ Zachowanie współrzędnych po obliczeniu trasy (czyszczenie tylko przyciskiem X)
+- ✅ Funkcje kopiowania GPS do schowka w formacie Space Engineers
+- ✅ Panel zarządzania danymi użytkownika z importem/eksportem CSV
+- ✅ Obsługa formatów GPS Space Engineers w importowanych danych
+- ✅ Przykładowe pliki CSV dla użytkowników
+- ✅ Poprawki wydajności i zarządzania pamięcią
+- ✅ Rozszerzona dokumentacja i instrukcje użytkowania
 ==============
 
 WERSJA 16.08.25:

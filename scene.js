@@ -178,6 +178,46 @@ function createStars() {
                     });
                 }
                 break;
+            case 'temp-obj':
+                // Obiekty tymczasowe jako znaki wykrzyknika (!)
+                console.log(`🔥 TWORZENIE WYKRZYKNIKA dla: ${obj.name}`);
+                
+                // Tworzenie grupy dla całego wykrzyknika
+                objMesh = new THREE.Group();
+                
+                // Główny słupek wykrzyknika (cylinder)
+                const exclamationHeight = radius * 4; // Wysokość wykrzyknika
+                const exclamationWidth = radius * 0.3; // Szerokość słupka
+                const stickGeometry = new THREE.CylinderGeometry(exclamationWidth, exclamationWidth, exclamationHeight, 8);
+                const stickMaterial = new THREE.MeshBasicMaterial({ 
+                    color: obj.color,
+                    transparent: false,
+                    depthTest: true,
+                    depthWrite: true
+                });
+                const stickMesh = new THREE.Mesh(stickGeometry, stickMaterial);
+                stickMesh.position.y = exclamationHeight * 0.3; // Przesuń w górę
+                
+                // Kropka na dole wykrzyknika (sphere)
+                const dotRadius = exclamationWidth * 1.5;
+                const dotGeometry = new THREE.SphereGeometry(dotRadius, 8, 8);
+                const dotMaterial = new THREE.MeshBasicMaterial({ 
+                    color: obj.color,
+                    transparent: false,
+                    depthTest: true,
+                    depthWrite: true
+                });
+                const dotMesh = new THREE.Mesh(dotGeometry, dotMaterial);
+                dotMesh.position.y = -exclamationHeight * 0.4; // Przesuń w dół
+                
+                // Dodaj części do grupy
+                objMesh.add(stickMesh);
+                objMesh.add(dotMesh);
+                
+                // Nie używamy geometry i material dla grup
+                geometry = null;
+                material = null;
+                break;
             default:
                 console.log(`⚠️ Nieznany objectType: "${obj.objectType}" dla ${obj.name} - używam domyślnej kuli`);
                 geometry = new THREE.SphereGeometry(radius, 32, 32);
@@ -198,7 +238,10 @@ function createStars() {
         }
         
         // Tworzenie obiektu - może być Mesh lub Group
-        if (obj.objectType === 'user_object') {
+        if (obj.objectType === 'temp-obj') {
+            // objMesh już został utworzony jako Group w switch case dla temp-obj
+            // Nie rób nic - objMesh jest już gotowy
+        } else if (obj.objectType === 'user_object') {
             // objMesh już został utworzony w switch case dla user_object
             if (!objMesh) {
                 objMesh = new THREE.Mesh(geometry, material);
@@ -299,7 +342,7 @@ function enableStarHighlighting() {
         const mouseVec = new THREE.Vector2(x, y);
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouseVec, camera);
-        const intersects = raycaster.intersectObjects(stars);
+        const intersects = raycaster.intersectObjects(stars, true);
         
         // Remove previous highlights
         scene.children = scene.children.filter(obj => !obj.userData || !obj.userData._isHighlight);
@@ -307,12 +350,28 @@ function enableStarHighlighting() {
         if (intersects.length > 0) {
             // Find the best object to select - prioritize user objects, then non-danger zones
             let selectedObject = null;
+            let hitData = null;
             
-            // First priority: user objects
+            // Helper function to get object data (handles Groups like temp-obj)
+            const getObjectData = (mesh) => {
+                // Sprawdź czy mesh ma userData z danymi obiektu
+                if (mesh.userData && mesh.userData.name) {
+                    return { mesh: mesh, data: mesh.userData };
+                }
+                // Sprawdź czy parent (grupa) ma userData z danymi obiektu
+                if (mesh.parent && mesh.parent.userData && mesh.parent.userData.name) {
+                    return { mesh: mesh.parent, data: mesh.parent.userData };
+                }
+                return null;
+            };
+            
+            // First priority: user objects and temp-obj
             for (let i = 0; i < intersects.length; i++) {
                 const candidate = intersects[i].object;
-                if (candidate.userData.isUserData || candidate.userData.objectType === 'user_object') {
-                    selectedObject = candidate;
+                const objData = getObjectData(candidate);
+                if (objData && (objData.data.isUserData || objData.data.objectType === 'user_object' || objData.data.objectType === 'temp-obj')) {
+                    selectedObject = objData.mesh;
+                    hitData = objData.data;
                     break;
                 }
             }
@@ -321,8 +380,10 @@ function enableStarHighlighting() {
             if (!selectedObject) {
                 for (let i = 0; i < intersects.length; i++) {
                     const candidate = intersects[i].object;
-                    if (candidate.userData.objectType !== 'danger_zone') {
-                        selectedObject = candidate;
+                    const objData = getObjectData(candidate);
+                    if (objData && objData.data.objectType !== 'danger_zone') {
+                        selectedObject = objData.mesh;
+                        hitData = objData.data;
                         break;
                     }
                 }
@@ -330,22 +391,31 @@ function enableStarHighlighting() {
             
             // Last resort: use the first object (which could be a danger zone)
             if (!selectedObject) {
-                selectedObject = intersects[0].object;
+                const candidate = intersects[0].object;
+                const objData = getObjectData(candidate);
+                if (objData) {
+                    selectedObject = objData.mesh;
+                    hitData = objData.data;
+                } else {
+                    selectedObject = candidate;
+                    hitData = candidate.userData;
+                }
             }
             
             const hit = selectedObject;
-            const objectRadius = (hit.userData.diameter * 1000) / 2;
+            const hitUserData = hitData || hit.userData;
+            const objectRadius = (hitUserData.diameter * 1000) / 2;
             
             // Oblicz zasięg grawitacji na podstawie danych z CSV lub wartości domyślnych
             let gravityRadius;
-            if (hit.userData.gravityRange && hit.userData.gravityRange !== '') {
+            if (hitUserData.gravityRange && hitUserData.gravityRange !== '') {
                 // Użyj wartości z CSV (w kilometrach, konwertuj na metry)
-                gravityRadius = parseFloat(hit.userData.gravityRange) * 1000;
+                gravityRadius = parseFloat(hitUserData.gravityRange) * 1000;
             } else {
                 // Wartości domyślne: 40 km dla planet, 5 km dla księżyców
-                if (hit.userData.objectType === 'planet') {
+                if (hitUserData.objectType === 'planet') {
                     gravityRadius = 40000; // 40 km
-                } else if (hit.userData.objectType === 'moon') {
+                } else if (hitUserData.objectType === 'moon') {
                     gravityRadius = 5000;  // 5 km
                 } else {
                     gravityRadius = 40000; // domyślnie 40 km dla innych obiektów
@@ -355,7 +425,7 @@ function enableStarHighlighting() {
             const highlightRadius = objectRadius + gravityRadius;
             const highlightGeom = new THREE.SphereGeometry(highlightRadius, 32, 32);
             const highlightMat = new THREE.MeshBasicMaterial({ 
-                color: hit.userData.color, 
+                color: hitUserData.color, 
                 transparent: true, 
                 opacity: 0.25, 
                 wireframe: true 
@@ -366,7 +436,7 @@ function enableStarHighlighting() {
             scene.add(highlight);
             
             if (typeof showObjectInfo === 'function') {
-                showObjectInfo(hit.userData);
+                showObjectInfo(hitUserData);
             }
         } else {
             if (typeof clearObjectInfo === 'function') {

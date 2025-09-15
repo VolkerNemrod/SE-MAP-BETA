@@ -16,12 +16,24 @@ window.onload = function() {
         
         spaceEngineersData = spaceEngineersData.concat(localData);
         
-        // WAŻNE: Ustaw dane jako globalną zmienną dla widoku 2D
-        window.spaceEngineersData = spaceEngineersData;
-        
-        console.log(`📊 Łącznie obiektów w spaceEngineersData: ${spaceEngineersData.length}`);
-        console.log(`📊 window.spaceEngineersData ustawione:`, window.spaceEngineersData.length);
-        init();
+        // Załaduj obiekty tymczasowe z temp-objekty.csv
+        loadTempObjectsCsv('temp-objekty.csv', function(tempData) {
+            console.log(`🔥 INIT: Załadowano ${tempData.length} obiektów tymczasowych`);
+            
+            // Debug - wypisz obiekty tymczasowe
+            if (tempData.length > 0) {
+                console.log('🔥 Obiekty tymczasowe:', tempData.map(obj => `${obj.name} (${obj.objectType})`));
+            }
+            
+            spaceEngineersData = spaceEngineersData.concat(tempData);
+            
+            // WAŻNE: Ustaw dane jako globalną zmienną dla widoku 2D
+            window.spaceEngineersData = spaceEngineersData;
+            
+            console.log(`📊 Łącznie obiektów w spaceEngineersData: ${spaceEngineersData.length}`);
+            console.log(`📊 window.spaceEngineersData ustawione:`, window.spaceEngineersData.length);
+            init();
+        });
     });
 };
 
@@ -86,9 +98,9 @@ function init() {
     window.addEventListener('resize', onWindowResize, false);
 }
 
-// Funkcja do odświeżania mapy z lokalnymi danymi
+// Funkcja do odświeżania mapy z lokalnymi danymi i obiektami tymczasowymi
 function refreshMapWithLocalData() {
-    console.log('🔄 Odświeżanie mapy z lokalnymi danymi...');
+    console.log('🔄 Odświeżanie mapy z lokalnymi danymi i obiektami tymczasowymi...');
     
     // Przeładuj dane z CSV i dodaj lokalne dane
     loadSystemDataCsv('uklad.csv', function(data) {
@@ -97,53 +109,73 @@ function refreshMapWithLocalData() {
         
         spaceEngineersData = data.concat(localData);
         
-        // WAŻNE: Ustaw dane jako globalną zmienną dla widoku 2D
-        window.spaceEngineersData = spaceEngineersData;
-        
-        // Wyczyść całą scenę z obiektów (oprócz siatki i osi)
-        const objectsToRemove = [];
-        scene.traverse(function(child) {
-            if (child.type === 'Mesh' && child !== gridHelper && !child.userData._isHighlight) {
-                objectsToRemove.push(child);
-            }
-        });
-        
-        objectsToRemove.forEach(obj => {
-            scene.remove(obj);
-            if (obj.geometry) obj.geometry.dispose();
-            if (obj.material) {
-                if (Array.isArray(obj.material)) {
-                    obj.material.forEach(mat => mat.dispose());
-                } else {
-                    obj.material.dispose();
+        // Załaduj obiekty tymczasowe z temp-objekty.csv
+        loadTempObjectsCsv('temp-objekty.csv', function(tempData) {
+            console.log(`🔥 REFRESH: Załadowano ${tempData.length} obiektów tymczasowych`);
+            
+            spaceEngineersData = spaceEngineersData.concat(tempData);
+            
+            // WAŻNE: Ustaw dane jako globalną zmienną dla widoku 2D
+            window.spaceEngineersData = spaceEngineersData;
+            
+            // Wyczyść całą scenę z obiektów (oprócz siatki i osi)
+            const objectsToRemove = [];
+            scene.traverse(function(child) {
+                if ((child.type === 'Mesh' || child.type === 'Group') && child !== gridHelper && !child.userData._isHighlight) {
+                    objectsToRemove.push(child);
                 }
-            }
-        });
-        
-        // Wyczyść tablicę stars
-        stars = [];
-        
-        // Odtwórz wszystkie obiekty na mapie
-        createStars();
-        
-        // Odśwież dropdown z obiektami
-        fillDropdownWithObjects();
-        
-        // Odśwież widok 2D zawsze gdy dane się załadują
-        if (window.view2D) {
-            console.log('🔄 Odświeżanie widoku 2D po załadowaniu danych...');
-            window.view2D.prepareObjects();
-            if (window.view2D.isActive) {
-                window.view2D.render();
-                console.log('✅ Widok 2D odświeżony i wyrenderowany');
+            });
+            
+            objectsToRemove.forEach(obj => {
+                scene.remove(obj);
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) {
+                    if (Array.isArray(obj.material)) {
+                        obj.material.forEach(mat => mat.dispose());
+                    } else {
+                        obj.material.dispose();
+                    }
+                }
+                // Wyczyść również dzieci grup (dla temp-obj)
+                if (obj.children) {
+                    obj.children.forEach(child => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) {
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach(mat => mat.dispose());
+                            } else {
+                                child.material.dispose();
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Wyczyść tablicę stars
+            stars = [];
+            
+            // Odtwórz wszystkie obiekty na mapie
+            createStars();
+            
+            // Odśwież dropdown z obiektami
+            fillDropdownWithObjects();
+            
+            // Odśwież widok 2D zawsze gdy dane się załadują
+            if (window.view2D) {
+                console.log('🔄 Odświeżanie widoku 2D po załadowaniu danych...');
+                window.view2D.prepareObjects();
+                if (window.view2D.isActive) {
+                    window.view2D.render();
+                    console.log('✅ Widok 2D odświeżony i wyrenderowany');
+                } else {
+                    console.log('✅ Widok 2D przygotowany (nieaktywny)');
+                }
             } else {
-                console.log('✅ Widok 2D przygotowany (nieaktywny)');
+                console.error('❌ window.view2D nie istnieje!');
             }
-        } else {
-            console.error('❌ window.view2D nie istnieje!');
-        }
-        
-        console.log('✅ Mapa została odświeżona z lokalnymi danymi');
+            
+            console.log('✅ Mapa została odświeżona z lokalnymi danymi i obiektami tymczasowymi');
+        });
     });
 }
 

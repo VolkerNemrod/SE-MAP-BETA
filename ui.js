@@ -197,6 +197,12 @@ function showObjectInfo(obj) {
     const kmUnit = window.t ? window.t('ui.labels.km') : 'km';
     const resourcesLabel = window.t ? window.t('ui.labels.resources') : 'Surowce';
     
+    // Generuj GPS string dla obiektu (sprawdź czy współrzędne są liczbami)
+    const gpsX = typeof obj.x === 'number' ? obj.x.toFixed(2) : obj.x;
+    const gpsY = typeof obj.y === 'number' ? obj.y.toFixed(2) : obj.y;
+    const gpsZ = typeof obj.z === 'number' ? obj.z.toFixed(2) : obj.z;
+    const gpsString = `GPS:${obj.name}:${gpsX}:${gpsY}:${gpsZ}:#FFFFFF:`;
+    
     infoDiv.innerHTML = `
         <b>${obj.name}</b> <span style="color:#aaa;font-size:0.95em;">(${obj.type})</span><br>
         <span style="color:#9fa">${xLabel}:</span> ${x}, <span style="color:#9fa">${yLabel}:</span> ${y}, <span style="color:#9fa">${zLabel}:</span> ${z}<br>
@@ -204,7 +210,38 @@ function showObjectInfo(obj) {
         ${obj.description ? `<div style="margin-top:8px;color:#ffa;line-height:1.4;">${obj.description}</div>` : ""}
         ${obj.resources ? `<div style="margin-top:6px;color:#acf;"><strong>${resourcesLabel}:</strong> ${obj.resources}</div>` : ""}
         ${obj.poeticDescription ? `<div style="margin-top:8px;padding:8px;background:rgba(0,100,0,0.2);border-radius:4px;color:#9ec;font-style:italic;line-height:1.4;">${obj.poeticDescription}</div>` : ""}
+        
+        <div style="margin-top: 8px; padding: 8px; background: rgba(0,40,80,0.3); border-radius: 4px; border-left: 3px solid #4080ff;">
+            <b>📍 GPS dla gry:</b><br>
+            <div style="margin-top: 6px;">
+                <button id="copy-object-gps" style="
+                    background: #101f13; color: #93ffd2; border: 1px solid #13fd87; 
+                    border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.8em;
+                ">📋 Kopiuj GPS</button>
+                <div style="margin-top: 6px;">
+                    <label style="color: #aaf; font-size: 0.8em; cursor: pointer;">
+                        <input type="checkbox" id="safety-buffer-checkbox" style="margin-right: 4px;">
+                        Bufor bezpieczeństwa +100m od grawitacji
+                    </label>
+                </div>
+            </div>
+            <div style="font-size: 0.75em; color: #aaf; margin-top: 4px; font-style: italic;">
+                Kliknij aby skopiować GPS do schowka
+            </div>
+        </div>
     `;
+    
+    // Dodaj event listener do przycisku GPS
+    setTimeout(() => {
+        const gpsBtn = document.getElementById('copy-object-gps');
+        if (gpsBtn) {
+            gpsBtn.addEventListener('click', () => {
+                const safetyCheckbox = document.getElementById('safety-buffer-checkbox');
+                const useSafetyBuffer = safetyCheckbox && safetyCheckbox.checked;
+                copyObjectGPSToClipboard(gpsString, obj.name, obj, useSafetyBuffer);
+            });
+        }
+    }, 100);
 }
 
 function addClearButtonToInfoPanel() {
@@ -334,6 +371,144 @@ window.addEventListener('languageChanged', () => {
     }
 });
 
+// Funkcja do kopiowania GPS obiektu do schowka
+function copyObjectGPSToClipboard(gpsString, objectName, objectData = null, useSafetyBuffer = false) {
+    let finalGpsString = gpsString;
+    
+    // Jeśli włączony bufor bezpieczeństwa, oblicz nowe współrzędne
+    if (useSafetyBuffer && objectData && typeof objectData.x === 'number' && typeof objectData.y === 'number' && typeof objectData.z === 'number') {
+        // Oblicz zasięg grawitacji
+        let gravityRange;
+        if (objectData.gravityRange && objectData.gravityRange !== '') {
+            gravityRange = parseFloat(objectData.gravityRange) * 1000; // konwertuj km na metry
+        } else {
+            // Wartości domyślne
+            if (objectData.objectType === 'planet') {
+                gravityRange = 40000; // 40 km
+            } else if (objectData.objectType === 'moon') {
+                gravityRange = 5000;  // 5 km
+            } else {
+                gravityRange = 40000; // domyślnie 40 km
+            }
+        }
+        
+        // Oblicz promień obiektu
+        const objectRadius = objectData.diameter ? (objectData.diameter * 1000) / 2 : 0;
+        
+        // Całkowity zasięg (promień obiektu + grawitacja + bufor 100m)
+        const totalRange = objectRadius + gravityRange + 100;
+        
+        // Oblicz kierunek od obiektu do kamery (lub użyj domyślnego kierunku w górę)
+        let direction = new THREE.Vector3(0, 1, 0); // domyślnie w górę
+        if (window.camera) {
+            const objectPos = new THREE.Vector3(objectData.x, objectData.y, objectData.z);
+            const cameraPos = window.camera.position.clone();
+            direction = cameraPos.sub(objectPos).normalize();
+        }
+        
+        // Oblicz nowe współrzędne z buforem bezpieczeństwa
+        const safeX = objectData.x + (direction.x * totalRange);
+        const safeY = objectData.y + (direction.y * totalRange);
+        const safeZ = objectData.z + (direction.z * totalRange);
+        
+        // Stwórz nowy GPS string z bezpiecznymi współrzędnymi
+        finalGpsString = `GPS:${objectData.name} (Bezpieczny):${safeX.toFixed(2)}:${safeY.toFixed(2)}:${safeZ.toFixed(2)}:#FFFF00:`;
+        
+        console.log(`🛡️ Bufor bezpieczeństwa: ${objectData.name}`);
+        console.log(`   Promień obiektu: ${objectRadius}m`);
+        console.log(`   Zasięg grawitacji: ${gravityRange}m`);
+        console.log(`   Bufor: 100m`);
+        console.log(`   Całkowity zasięg: ${totalRange}m`);
+        console.log(`   Oryginalne: ${objectData.x}, ${objectData.y}, ${objectData.z}`);
+        console.log(`   Bezpieczne: ${safeX.toFixed(2)}, ${safeY.toFixed(2)}, ${safeZ.toFixed(2)}`);
+    }
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(finalGpsString).then(() => {
+            console.log(`📋 Skopiowano GPS ${objectName}:`, finalGpsString);
+            const message = useSafetyBuffer ? 
+                `📋 Skopiowano bezpieczny GPS ${objectName} do schowka!` : 
+                `📋 Skopiowano GPS ${objectName} do schowka!`;
+            showObjectGPSNotification(message);
+        }).catch(err => {
+            console.error('❌ Błąd kopiowania do schowka:', err);
+            fallbackCopyObjectGPSToClipboard(finalGpsString, objectName, useSafetyBuffer);
+        });
+    } else {
+        fallbackCopyObjectGPSToClipboard(finalGpsString, objectName, useSafetyBuffer);
+    }
+}
+
+// Fallback dla starszych przeglądarek
+function fallbackCopyObjectGPSToClipboard(text, objectName, useSafetyBuffer = false) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        console.log(`📋 Skopiowano GPS ${objectName} (fallback):`, text);
+        const message = useSafetyBuffer ? 
+            `📋 Skopiowano bezpieczny GPS ${objectName} do schowka!` : 
+            `📋 Skopiowano GPS ${objectName} do schowka!`;
+        showObjectGPSNotification(message);
+    } catch (err) {
+        console.error('❌ Błąd kopiowania (fallback):', err);
+        showObjectGPSNotification(`❌ Błąd kopiowania GPS ${objectName}`);
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+// Pokaż powiadomienie o kopiowaniu GPS obiektu
+function showObjectGPSNotification(message) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 50px;
+        right: 20px;
+        background: rgba(0,255,128,0.9);
+        color: #000;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: 'Fira Mono', monospace;
+        font-size: 0.9em;
+        z-index: 9999;
+        animation: fadeInOut 3s ease-in-out;
+        box-shadow: 0 4px 12px rgba(0,255,128,0.3);
+    `;
+    
+    // Dodaj animację CSS jeśli nie istnieje
+    if (!document.getElementById('object-gps-notification-style')) {
+        const style = document.createElement('style');
+        style.id = 'object-gps-notification-style';
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translateX(100%); }
+                15% { opacity: 1; transform: translateX(0); }
+                85% { opacity: 1; transform: translateX(0); }
+                100% { opacity: 0; transform: translateX(100%); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Usuń po 3 sekundach
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
+}
+
 // Export functions to global scope
 window.fillDropdownWithObjects = fillDropdownWithObjects;
 window.wireJumpPanel = wireJumpPanel;
@@ -342,3 +517,4 @@ window.showGotoMarker = showGotoMarker;
 window.showObjectInfo = showObjectInfo;
 window.clearObjectInfo = clearObjectInfo;
 window.formatNumber = formatNumber;
+window.copyObjectGPSToClipboard = copyObjectGPSToClipboard;
