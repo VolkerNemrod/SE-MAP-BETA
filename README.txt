@@ -2,7 +2,8 @@ SE-MAP – Space Engineers 3D Map (wersja webowa)
 ===============================================
 
 Wersja DEMO: https://se-map-beta.macierz.eu/
-YT: https://www.youtube.com/watch?v=1Dc1jhDcPYU&list=PLdXbPExznPQUsj06RhLhrG6WUmdLTG3ic 
+YT cz1: https://youtu.be/1Dc1jhDcPYU
+YT cz2: https://youtu.be/MGbzPPS-5Ho
 Kontakt: se-map@macierz.eu
 
 Interaktywna, trójwymiarowa mapa układu planetarnego zainspirowana światem Space Engineers.
@@ -508,3 +509,6 @@ WERSJA 16.08.25:
 ---
 
 Miłego korzystania!
+
+___________________________________________________________________________________
+
