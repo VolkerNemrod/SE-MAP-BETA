@@ -1,947 +1,706 @@
-// view2d.js - 2D System Map View (Elite Dangerous style)
+// view2d.js - 2D System Map View with Graphics
 
 class View2D {
     constructor() {
-        this.canvas = null;
-        this.ctx = null;
+        this.container = null;
         this.isActive = false;
         this.objects = [];
-        this.hoveredObject = null;
+        
+        // Pan & Zoom state
         this.scale = 1;
-        this.offsetX = 0;
-        this.offsetY = 0;
-        this.centerX = 0;
-        this.centerY = 0;
-        
-        // Panning variables
+        this.panX = 0;
+        this.panY = 0;
         this.isDragging = false;
-        this.lastMouseX = 0;
-        this.lastMouseY = 0;
-        
-        // Visual settings
-        this.colors = {
-            background: '#000011',
-            grid: '#112233',
-            planet: '#4488ff',
-            moon: '#88ccff',
-            wormhole: '#ffff66',
-            dangerZone: '#ff6666',
-            userObject: '#ff9966',
-            text: '#ffffff',
-            connection: '#666666'
-        };
+        this.dragStartX = 0;
+        this.dragStartY = 0;
         
         this.init();
     }
     
     init() {
-        this.canvas = document.getElementById('view2d-canvas');
-        this.ctx = this.canvas.getContext('2d');
+        this.container = document.getElementById('view2d-container');
         
-        // Set canvas size
-        this.resizeCanvas();
-        
-        // Add event listeners
-        window.addEventListener('resize', () => this.resizeCanvas());
-        this.canvas.addEventListener('click', (e) => this.handleClick(e));
-        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
-        this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-        this.canvas.addEventListener('wheel', (e) => this.handleWheel(e));
+        // Setup background - sprawdź czy istnieje background.png
+        this.setupBackground();
         
         // Initially hidden
         this.hide();
     }
     
-    resizeCanvas() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        this.centerX = this.canvas.width / 2;
-        this.centerY = this.canvas.height / 2;
-        
-        if (this.isActive) {
-            this.render();
-        }
+    setupBackground() {
+        // Spróbuj załadować background.png, jeśli nie istnieje - czarne tło
+        const bg = new Image();
+        bg.onload = () => {
+            this.container.style.backgroundImage = `url(/graf/background.png)`;
+            this.container.style.backgroundSize = 'cover';
+            this.container.style.backgroundPosition = 'center';
+        };
+        bg.onerror = () => {
+            this.container.style.backgroundColor = '#000000';
+        };
+        bg.src = '/graf/background.png';
     }
     
     show() {
         this.isActive = true;
-        document.getElementById('view2d-container').style.display = 'block';
+        this.container.style.display = 'block';
         document.getElementById('container').style.display = 'none';
         
-        // Debug - sprawdź dane ponownie przy pokazywaniu widoku 2D
-        console.log('🔍 Sprawdzanie danych przy przełączaniu na widok 2D:');
-        console.log('- window.spaceEngineersData:', window.spaceEngineersData);
-        console.log('- Długość:', window.spaceEngineersData ? window.spaceEngineersData.length : 'undefined');
+        // Ukryj elementy interfejsu
+        const topBar = document.getElementById('top-bar');
+        const sidePanel = document.getElementById('side-info-panel');
+        const authorInfo = document.getElementById('author-info');
         
-        // Sprawdź dropdown ponownie
-        const dropdown = document.getElementById('object-dropdown');
-        if (dropdown) {
-            console.log('- Dropdown opcje przy przełączaniu:', dropdown.options.length);
-            if (dropdown.options.length > 1) {
-                console.log('✅ Dropdown ma opcje - próbuję pobrać dane z dropdown');
-                this.extractDataFromDropdown();
-            }
-        }
+        if (topBar) topBar.style.display = 'none';
+        if (sidePanel) sidePanel.style.display = 'none';
+        if (authorInfo) authorInfo.style.display = 'none';
         
-        // Prepare objects for 2D rendering
+        // Prepare and render objects
         this.prepareObjects();
         this.render();
     }
     
     hide() {
         this.isActive = false;
-        document.getElementById('view2d-container').style.display = 'none';
+        this.container.style.display = 'none';
         document.getElementById('container').style.display = 'block';
+        
+        // Przywróć elementy interfejsu
+        const topBar = document.getElementById('top-bar');
+        const sidePanel = document.getElementById('side-info-panel');
+        const authorInfo = document.getElementById('author-info');
+        
+        if (topBar) topBar.style.display = 'flex';
+        if (sidePanel) sidePanel.style.display = 'block';
+        if (authorInfo) authorInfo.style.display = 'block';
     }
     
     prepareObjects() {
+        console.log('🔍 prepareObjects - sprawdzam dane...');
+        console.log('- window.spaceEngineersData:', window.spaceEngineersData);
+        console.log('- Długość:', window.spaceEngineersData ? window.spaceEngineersData.length : 'undefined');
+        
         if (!window.spaceEngineersData || window.spaceEngineersData.length === 0) {
-            console.log('⚠️ Brak danych spaceEngineersData dla widoku 2D - tworzę dane testowe');
-            this.createTestData();
+            console.log('⚠️ Brak danych do wyświetlenia w widoku 2D');
             return;
         }
         
-        console.log(`📊 Przygotowywanie ${window.spaceEngineersData.length} obiektów dla widoku 2D`);
-        
-        // Debug - sprawdź średnice obiektów
-        console.log('🔍 Średnice obiektów z danych CSV:');
-        window.spaceEngineersData.forEach(obj => {
-            console.log(`- ${obj.name}: ${obj.diameter}km (typ: ${obj.objectType || obj.type})`);
+        // Debug - pokaż pierwsze 3 obiekty z danymi
+        console.log('🔍 Pierwsze 3 obiekty z danych:');
+        window.spaceEngineersData.slice(0, 3).forEach(obj => {
+            console.log(`- ${obj.name}: graphicPath="${obj.graphicPath}"`);
         });
         
-        // Calculate distance from center (0,0,0) for each object
-        this.objects = window.spaceEngineersData.map(obj => {
-            const distance = Math.sqrt(obj.x * obj.x + obj.y * obj.y + obj.z * obj.z);
-            
-            // Proporcjonalny rozmiar na podstawie rzeczywistej średnicy
-            // Użyj logarytmicznej skali dla lepszego rozróżnienia rozmiarów
-            const minSize = 4; // Minimalny rozmiar
-            const maxSize = 30; // Maksymalny rozmiar
-            
-            let proportionalRadius;
-            if (obj.diameter <= 0) {
-                proportionalRadius = minSize;
-            } else {
-                // Logarytmiczna skala dla lepszego rozróżnienia
-                const logScale = Math.log(obj.diameter + 1) * 3;
-                proportionalRadius = Math.max(minSize, Math.min(maxSize, logScale));
+        // Filtruj tylko obiekty z graphicPath
+        this.objects = window.spaceEngineersData.filter(obj => {
+            const hasGraphic = obj.graphicPath && obj.graphicPath.trim() !== '';
+            if (!hasGraphic) {
+                console.log(`❌ ${obj.name} - brak graphicPath`);
             }
-            
-            console.log(`📏 ${obj.name}: średnica ${obj.diameter}km → rozmiar ${proportionalRadius.toFixed(1)}px`);
-            
-            return {
-                ...obj,
-                distance: distance,
-                displayRadius: proportionalRadius
-            };
+            return hasGraphic;
         });
         
-        // Sort by distance from center
+        console.log(`📊 Widok 2D: Znaleziono ${this.objects.length} obiektów z grafikami`);
+        
+        // Oblicz odległości od centrum dla kolejności
+        this.objects.forEach(obj => {
+            obj.distance = Math.sqrt(obj.x * obj.x + obj.y * obj.y + obj.z * obj.z);
+        });
+        
+        // Posortuj według odległości
         this.objects.sort((a, b) => a.distance - b.distance);
+    }
+    
+    calculateSize(diameter) {
+        // Skalowanie rozmiaru na podstawie średnicy
+        // Minimalny rozmiar: 30px dla małych obiektów (stacje, wormhole)
+        // Maksymalny rozmiar: 180px dla dużych planet
+        const minSize = 30;
+        const maxSize = 180;
         
-        console.log(`✅ Posortowano obiekty według odległości od centrum`);
+        if (diameter <= 0 || !diameter) {
+            return minSize;
+        }
         
-        // Calculate positions for 2D layout
+        // Liniowa skala z silnym współczynnikiem dla wyraźnych różnic
+        // Księżyce (19km) → ~42px (małe)
+        // Małe planety (60km) → ~102px (średnie)
+        // Duże planety (120km) → ~162px (duże)
+        const linearScale = minSize + (diameter * 1.1);
+        return Math.max(minSize, Math.min(maxSize, linearScale));
+    }
+    
+    findParentPlanet(moon) {
+        // Znajdź planetę-rodzica dla księżyca
+        // Szukaj planety która ma podobną nazwę lub jest najbliższa
+        const moonName = moon.name.toLowerCase();
+        
+        // Sprawdź najpierw czy nazwa księżyca zawiera oznaczenie planety (np. "Kepler-444b-1")
+        for (let obj of this.objects) {
+            if (obj.objectType === 'planet') {
+                const planetCode = obj.name.match(/Kepler-\d+[a-z]/i);
+                const moonCode = moon.name.match(/Kepler-\d+[a-z]-\d+/i);
+                
+                if (planetCode && moonCode && moonCode[0].startsWith(planetCode[0])) {
+                    return obj;
+                }
+            }
+        }
+        
+        // Fallback: znajdź najbliższą planetę
+        let closestPlanet = null;
+        let minDistance = Infinity;
+        
+        for (let obj of this.objects) {
+            if (obj.objectType === 'planet') {
+                const dist = Math.sqrt(
+                    Math.pow(moon.x - obj.x, 2) +
+                    Math.pow(moon.y - obj.y, 2) +
+                    Math.pow(moon.z - obj.z, 2)
+                );
+                
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestPlanet = obj;
+                }
+            }
+        }
+        
+        return closestPlanet;
+    }
+    
+    render() {
+        // Wyczyść poprzednią zawartość
+        this.container.innerHTML = '';
+        
+        if (this.objects.length === 0) {
+            this.showNoDataMessage();
+            return;
+        }
+        
+        // Dodaj logo ISF w lewym górnym rogu
+        this.addLogo();
+        
+        // Oblicz układ obiektów
         this.calculateLayout();
+        
+        // Utwórz viewport dla pan/zoom
+        this.createViewport();
+        
+        // Renderuj obiekty
+        this.objects.forEach(obj => {
+            if (obj.layout2D) {
+                this.renderObject(obj);
+            }
+        });
+        
+        // Dodaj kontrolki zoom
+        this.addZoomControls();
+        
+        // Setup pan & zoom
+        this.setupPanZoom();
+    }
+    
+    addLogo() {
+        // Pobierz nazwę układu z ścieżki grafiki pierwszego obiektu
+        let systemName = 'Unknown System';
+        if (this.objects.length > 0 && this.objects[0].graphicPath) {
+            // Ścieżka: graf/Kepler-444/Navia.png → wyciągnij "Kepler-444"
+            const pathParts = this.objects[0].graphicPath.split('/');
+            if (pathParts.length >= 2) {
+                systemName = pathParts[1]; // Drugi element to nazwa katalogu układu
+            }
+            console.log('🔍 Wykryto nazwę układu:', systemName, 'z ścieżki:', this.objects[0].graphicPath);
+        }
+        
+        const logo = document.createElement('div');
+        logo.style.position = 'absolute';
+        logo.style.top = '20px';
+        logo.style.left = '20px';
+        logo.style.color = '#ffffff';
+        logo.style.fontFamily = '"Fira Mono", monospace';
+        logo.style.fontSize = '24px';
+        logo.style.fontWeight = 'bold';
+        logo.style.textShadow = '0 0 10px rgba(255,255,255,0.5)';
+        logo.style.zIndex = '10000';
+        logo.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 32px;">🌟</span>
+                <div>
+                    <div>Interstellar Federation</div>
+                    <div style="font-size: 18px; opacity: 0.8;">${systemName}</div>
+                </div>
+            </div>
+        `;
+        this.container.appendChild(logo);
+        
+        // Dodaj przycisk powrotu do widoku 3D
+        this.addBackButton();
+    }
+    
+    addBackButton() {
+        const backBtn = document.createElement('button');
+        backBtn.textContent = '🌐 3D';
+        backBtn.style.position = 'absolute';
+        backBtn.style.top = '20px';
+        backBtn.style.right = '20px';
+        backBtn.style.background = '#101f13';
+        backBtn.style.color = '#93ffd2';
+        backBtn.style.fontWeight = '700';
+        backBtn.style.border = '1.6px solid #13fd87';
+        backBtn.style.borderRadius = '6px';
+        backBtn.style.padding = '8px 20px';
+        backBtn.style.cursor = 'pointer';
+        backBtn.style.fontSize = '16px';
+        backBtn.style.fontFamily = '"Fira Mono", monospace';
+        backBtn.style.textShadow = '0 0 6px #19ff97';
+        backBtn.style.zIndex = '10000';
+        backBtn.style.transition = 'background 0.14s, color 0.12s';
+        
+        backBtn.addEventListener('mouseenter', () => {
+            backBtn.style.background = '#18ffcc22';
+            backBtn.style.color = '#fff';
+        });
+        
+        backBtn.addEventListener('mouseleave', () => {
+            backBtn.style.background = '#101f13';
+            backBtn.style.color = '#93ffd2';
+        });
+        
+        backBtn.addEventListener('click', () => {
+            toggleView();
+        });
+        
+        this.container.appendChild(backBtn);
     }
     
     calculateLayout() {
-        // Dane orbit planet (zgodne z rzeczywistymi proporcjami)
-        const planetOrbits = {
-            'Navia (Kepler-444b)': { orbitDistance: 0.4, realDiameter: 12742, planetType: 'terrestrial' }, // Ziemia
-            'Ravok (Kepler-444c)': { orbitDistance: 0.8, realDiameter: 6779, planetType: 'terrestrial' }, // Mars
-            'Triton (Kepler-444d)': { orbitDistance: 1.5, realDiameter: 49244, planetType: 'ice_giant' }, // Neptun
-            'Pertam (Kepler-444e)': { orbitDistance: 2.2, realDiameter: 4879, planetType: 'terrestrial' }, // Merkury
-            'Vorath (Kepler-444f)': { orbitDistance: 3.5, realDiameter: 142984, planetType: 'gas_giant' } // Jowisz
-        };
-        
-        const moonData = {
-            'Elyra (Kepler-444b-1)': { parentPlanet: 'Navia (Kepler-444b)', moonDistance: 60, realDiameter: 3474 }, // Księżyc
-            'Europa (Kepler-444c-1)': { parentPlanet: 'Ravok (Kepler-444c)', moonDistance: 45, realDiameter: 3121 }, // Europa
-            'Torvion (Kepler-444e-1)': { parentPlanet: 'Pertam (Kepler-444e)', moonDistance: 35, realDiameter: 2634 }, // Enceladus
-            'Phrygia (Kepler-444e-2)': { parentPlanet: 'Pertam (Kepler-444e)', moonDistance: 50, realDiameter: 1436 }, // Mimas
-            'Titan (Kepler-444f-1)': { parentPlanet: 'Vorath (Kepler-444f)', moonDistance: 80, realDiameter: 5149 } // Tytan
-        };
-        
-        // Skala dla widoku 2D - mniejsze obiekty żeby się nie nakładały
-        const orbitScale = 120; // piksele na AU - większe orbity
-        const baseSizeScale = 0.001; // Bardzo mała skala rozmiarów
-        const minSize = 4; // Minimalny rozmiar obiektu w pikselach
-        const maxSize = 25; // Maksymalny rozmiar obiektu w pikselach - zmniejszony
-        
         const planets = this.objects.filter(obj => obj.objectType === 'planet');
         const moons = this.objects.filter(obj => obj.objectType === 'moon');
         const others = this.objects.filter(obj => 
             obj.objectType !== 'planet' && obj.objectType !== 'moon'
         );
         
-        // Nie dodawaj słońca - zasłania inne obiekty
+        const startX = 200;
+        const startY = 250;
+        const planetSpacing = 280; // Zmniejszony odstęp (z 350)
+        const moonOffsetY = 150; // Zmniejszone przesunięcie (z 180)
+        const moonSpacing = 100; // Zmniejszony odstęp (z 120)
+        const otherOffsetY = 200; // Zmniejszone przesunięcie (z 250)
+        const labelHeight = 40; // Margines na etykietę
         
-        // Rozmieść planety na orbitach wokół słońca - naprzemiennie lewo/prawo
+        // Rozmieść planety w linii poziomej
         planets.forEach((planet, index) => {
-            const orbitData = planetOrbits[planet.name];
-            if (orbitData) {
-                const orbitRadius = orbitData.orbitDistance * orbitScale;
-                // Naprzemiennie z lewej i prawej strony (0° i 180°)
-                const angle = (index % 2 === 0) ? 0 : Math.PI; // 0° lub 180°
-                const x = this.centerX + Math.cos(angle) * orbitRadius;
-                const y = this.centerY + Math.sin(angle) * orbitRadius;
-                
-                planet.layout2D = {
-                    x: x,
-                    y: y,
-                    level: 0,
-                    orbitRadius: orbitRadius,
-                    orbitAngle: angle
-                };
-                // Zachowaj oryginalny displayRadius z rzeczywistych danych CSV
-                // planet.displayRadius już jest ustawiony w prepareObjects()
-                planet.planetType = orbitData.planetType;
-            } else {
-                // Fallback dla planet bez zdefiniowanej orbity
-                planet.layout2D = {
-                    x: this.centerX + (Math.random() - 0.5) * 400,
-                    y: this.centerY + (Math.random() - 0.5) * 400,
-                    level: 0
-                };
-                // Zachowaj oryginalny displayRadius z rzeczywistych danych CSV
-                // planet.displayRadius już jest ustawiony w prepareObjects()
-            }
-        });
-        
-        // Rozmieść księżyce wokół swoich planet - naprzemiennie lewo/prawo
-        moons.forEach((moon, moonIndex) => {
-            const moonInfo = moonData[moon.name];
-            if (moonInfo) {
-                const parentPlanet = planets.find(p => p.name === moonInfo.parentPlanet);
-                if (parentPlanet && parentPlanet.layout2D) {
-                    const moonOrbitRadius = moonInfo.moonDistance * 0.8; // Skala dla widoku 2D
-                    
-                    // Znajdź wszystkie księżyce tej planety
-                    const planetMoons = moons.filter(m => {
-                        const mInfo = moonData[m.name];
-                        return mInfo && mInfo.parentPlanet === moonInfo.parentPlanet;
-                    });
-                    
-                    const moonIndexInPlanet = planetMoons.indexOf(moon);
-                    
-                    // Naprzemiennie z góry i z dołu (90° i 270°)
-                    const moonAngle = (moonIndexInPlanet % 2 === 0) ? Math.PI/2 : 3*Math.PI/2; // 90° lub 270°
-                    
-                    moon.layout2D = {
-                        x: parentPlanet.layout2D.x + Math.cos(moonAngle) * moonOrbitRadius,
-                        y: parentPlanet.layout2D.y + Math.sin(moonAngle) * moonOrbitRadius,
-                        level: 1,
-                        parent: parentPlanet,
-                        moonOrbitRadius: moonOrbitRadius,
-                        moonAngle: moonAngle
-                    };
-                    // Zachowaj oryginalny displayRadius z rzeczywistych danych CSV
-                    // moon.displayRadius już jest ustawiony w prepareObjects()
-                }
-            }
-            
-            // Fallback dla księżyców bez zdefiniowanego rodzica
-            if (!moon.layout2D) {
-                const closestPlanet = this.findParentPlanet(moon);
-                if (closestPlanet && closestPlanet.layout2D) {
-                    moon.layout2D = {
-                        x: closestPlanet.layout2D.x + (Math.random() - 0.5) * 100,
-                        y: closestPlanet.layout2D.y + 80 + Math.random() * 40,
-                        level: 1,
-                        parent: closestPlanet
-                    };
-                } else {
-                    moon.layout2D = {
-                        x: this.centerX + 300,
-                        y: this.centerY + 150,
-                        level: 1
-                    };
-                }
-                // Zachowaj oryginalny displayRadius z rzeczywistych danych CSV
-                // moon.displayRadius już jest ustawiony w prepareObjects()
-            }
-        });
-        
-        // Rozmieść pozostałe obiekty w okręgu wokół układu
-        let otherAngle = 0;
-        const otherRadius = Math.max(400, Math.max(...planets.map(p => p.layout2D ? p.layout2D.orbitRadius || 0 : 0)) + 100);
-        others.forEach((obj, index) => {
-            const x = this.centerX + Math.cos(otherAngle) * otherRadius;
-            const y = this.centerY + Math.sin(otherAngle) * otherRadius;
-            
-            obj.layout2D = {
-                x: x,
-                y: y,
-                level: 2
+            const size = this.calculateSize(planet.diameter);
+            planet.layout2D = {
+                x: startX + (index * planetSpacing),
+                y: startY,
+                size: size
             };
-            
-            otherAngle += (Math.PI * 2) / others.length;
         });
-    }
-    
-    findParentPlanet(moon) {
-        // Simple heuristic: find closest planet
-        let closestPlanet = null;
-        let minDistance = Infinity;
         
-        this.objects.filter(obj => obj.objectType === 'planet').forEach(planet => {
-            const distance = Math.sqrt(
-                Math.pow(moon.x - planet.x, 2) +
-                Math.pow(moon.y - planet.y, 2) +
-                Math.pow(moon.z - planet.z, 2)
-            );
+        // Rozmieść księżyce pod swoimi planetami
+        moons.forEach((moon) => {
+            const parent = this.findParentPlanet(moon);
+            const size = this.calculateSize(moon.diameter);
             
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestPlanet = planet;
+            if (parent && parent.layout2D) {
+                // Policz ile księżyców ma ta planeta
+                const siblings = moons.filter(m => {
+                    const p = this.findParentPlanet(m);
+                    return p === parent;
+                });
+                const moonIndex = siblings.indexOf(moon);
+                
+                // Rozmieść księżyce w pionie pod planetą z większym odstępem
+                moon.layout2D = {
+                    x: parent.layout2D.x,
+                    y: parent.layout2D.y + parent.layout2D.size/2 + moonOffsetY + (moonIndex * (moonSpacing + labelHeight)),
+                    size: size,
+                    parent: parent
+                };
+            } else {
+                // Fallback - umieść na końcu
+                moon.layout2D = {
+                    x: startX + (planets.length * planetSpacing),
+                    y: startY + moonOffsetY,
+                    size: size
+                };
             }
         });
         
-        return closestPlanet;
-    }
-    
-    render() {
-        if (!this.isActive) return;
-        
-        // Clear canvas
-        this.ctx.fillStyle = this.colors.background;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Nie rysuj siatki - niepotrzebne kreski
-        
-        // Draw orbits
-        this.drawOrbits();
-        
-        // Draw danger zones as areas
-        this.drawDangerZones();
-        
-        // Nie rysuj połączeń - niepotrzebne linie
-        
-        // Draw objects
-        this.objects.forEach(obj => this.drawObject(obj));
-        
-        // Draw labels
-        this.objects.forEach(obj => this.drawLabel(obj));
-        
-        // Nie rysuj markera centrum - niepotrzebny krzyżyk
-        
-        // Draw info message if no objects
-        if (this.objects.length === 0) {
-            this.drawNoDataMessage();
-        }
-    }
-    
-    // Funkcja drawGrid() usunięta - niepotrzebne kreski
-    
-    drawOrbits() {
-        // Rysuj orbity planet - jaśniejsze i bardziej widoczne z zoom
-        this.ctx.strokeStyle = '#6699cc';
-        this.ctx.lineWidth = 2 * this.scale;
-        this.ctx.setLineDash([5 * this.scale, 5 * this.scale]);
-        
-        const planets = this.objects.filter(obj => obj.objectType === 'planet' && obj.layout2D && obj.layout2D.orbitRadius);
-        planets.forEach(planet => {
-            this.ctx.beginPath();
-            this.ctx.arc(
-                (this.centerX + this.offsetX) * this.scale, 
-                (this.centerY + this.offsetY) * this.scale, 
-                planet.layout2D.orbitRadius * this.scale, 
-                0, Math.PI * 2
-            );
-            this.ctx.stroke();
-        });
-        
-        // Rysuj orbity księżyców - jaśniejsze z zoom
-        this.ctx.strokeStyle = '#88aadd';
-        this.ctx.lineWidth = 1 * this.scale;
-        this.ctx.setLineDash([3 * this.scale, 3 * this.scale]);
-        
-        const moons = this.objects.filter(obj => obj.objectType === 'moon' && obj.layout2D && obj.layout2D.moonOrbitRadius);
-        moons.forEach(moon => {
-            if (moon.layout2D.parent && moon.layout2D.parent.layout2D) {
-                this.ctx.beginPath();
-                this.ctx.arc(
-                    (moon.layout2D.parent.layout2D.x + this.offsetX) * this.scale, 
-                    (moon.layout2D.parent.layout2D.y + this.offsetY) * this.scale, 
-                    moon.layout2D.moonOrbitRadius * this.scale, 
-                    0, Math.PI * 2
-                );
-                this.ctx.stroke();
-            }
-        });
-        
-        this.ctx.setLineDash([]);
-    }
-    
-    drawDangerZones() {
-        // Znajdź strefy niebezpieczeństwa i narysuj je jako obszary z zoom
-        const dangerZones = this.objects.filter(obj => obj.objectType === 'danger_zone');
-        
-        dangerZones.forEach(zone => {
-            // Znajdź planety i księżyce w pobliżu strefy
-            const affectedObjects = this.findObjectsInZone(zone);
+        // Rozmieść pozostałe obiekty (wormhole, stacje) na końcu
+        others.forEach((obj, index) => {
+            const size = this.calculateSize(obj.diameter);
             
-            if (affectedObjects.length > 0) {
-                // Oblicz obszar obejmujący wszystkie obiekty w strefie
-                const bounds = this.calculateZoneBounds(affectedObjects);
-                
-                // Zastosuj zoom i offset do strefy
-                const centerX = (bounds.centerX + this.offsetX) * this.scale;
-                const centerY = (bounds.centerY + this.offsetY) * this.scale;
-                const radius = (bounds.radius + 30) * this.scale;
-                
-                // Rysuj strefę jako półprzezroczysty obszar
-                this.ctx.fillStyle = this.colors.dangerZone + '22'; // Bardzo przezroczyste
-                this.ctx.strokeStyle = this.colors.dangerZone + '88'; // Bardziej widoczne obramowanie
-                this.ctx.lineWidth = 2 * this.scale;
-                this.ctx.setLineDash([8 * this.scale, 4 * this.scale]);
-                
-                // Rysuj okrąg obejmujący strefę
-                this.ctx.beginPath();
-                this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.stroke();
-                
-                // Dodaj napis strefy na dole obszaru z zoom
-                const labelY = centerY + radius + 50 * this.scale;
-                const fontSize = Math.max(8, Math.min(16, 12 * this.scale));
-                
-                // Cień pod napisem
-                this.ctx.fillStyle = '#000000';
-                this.ctx.font = `${fontSize}px "Fira Mono", monospace`;
-                this.ctx.textAlign = 'center';
-                this.ctx.fillText(zone.name, centerX + 1, labelY + 1);
-                
-                // Główny napis
-                this.ctx.fillStyle = this.colors.dangerZone;
-                this.ctx.fillText(zone.name, centerX, labelY);
-                
-                this.ctx.setLineDash([]);
-            }
-        });
-    }
-    
-    findObjectsInZone(zone) {
-        // Znajdź obiekty w pobliżu strefy (planety i księżyce)
-        const affectedObjects = [];
-        const zoneRadius = 200000; // Promień strefy w jednostkach gry
-        
-        this.objects.forEach(obj => {
-            if (obj.objectType === 'planet' || obj.objectType === 'moon') {
-                const distance = Math.sqrt(
-                    Math.pow(obj.x - zone.x, 2) +
-                    Math.pow(obj.y - zone.y, 2) +
-                    Math.pow(obj.z - zone.z, 2)
-                );
-                
-                if (distance < zoneRadius) {
-                    affectedObjects.push(obj);
-                }
-            }
-        });
-        
-        // Jeśli nie znaleziono obiektów w pobliżu, spróbuj znaleźć najbliższe
-        if (affectedObjects.length === 0) {
-            // Znajdź najbliższą planetę
-            let closestPlanet = null;
-            let minDistance = Infinity;
-            
-            this.objects.forEach(obj => {
-                if (obj.objectType === 'planet' && obj.layout2D) {
-                    const distance = Math.sqrt(
-                        Math.pow(obj.x - zone.x, 2) +
-                        Math.pow(obj.y - zone.y, 2) +
-                        Math.pow(obj.z - zone.z, 2)
-                    );
-                    
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestPlanet = obj;
-                    }
+            // Znajdź ostatnią planetę z księżycami
+            let maxX = startX;
+            planets.forEach((planet, i) => {
+                const planetX = startX + (i * planetSpacing);
+                if (planetX > maxX) {
+                    maxX = planetX;
                 }
             });
             
-            if (closestPlanet) {
-                affectedObjects.push(closestPlanet);
-                
-                // Dodaj księżyce tej planety
-                this.objects.forEach(obj => {
-                    if (obj.objectType === 'moon' && obj.layout2D && obj.layout2D.parent === closestPlanet) {
-                        affectedObjects.push(obj);
-                    }
-                });
-            }
-        }
+            obj.layout2D = {
+                x: maxX + planetSpacing + (index * 200), // Zwiększony odstęp (z 150 na 200)
+                y: startY + otherOffsetY,
+                size: size
+            };
+        });
         
-        return affectedObjects;
+        // Oblicz wymiary całego układu
+        this.calculateBounds();
     }
     
-    calculateZoneBounds(objects) {
-        if (objects.length === 0) return { centerX: 0, centerY: 0, radius: 50 };
-        
-        // Znajdź granice obszaru
+    calculateBounds() {
         let minX = Infinity, maxX = -Infinity;
         let minY = Infinity, maxY = -Infinity;
         
-        objects.forEach(obj => {
-            if (obj.layout2D) {
-                minX = Math.min(minX, obj.layout2D.x - obj.displayRadius);
-                maxX = Math.max(maxX, obj.layout2D.x + obj.displayRadius);
-                minY = Math.min(minY, obj.layout2D.y - obj.displayRadius);
-                maxY = Math.max(maxY, obj.layout2D.y + obj.displayRadius);
-            }
-        });
-        
-        // Oblicz środek i promień
-        const centerX = (minX + maxX) / 2;
-        const centerY = (minY + maxY) / 2;
-        const radius = Math.max(
-            Math.abs(maxX - minX) / 2,
-            Math.abs(maxY - minY) / 2
-        ) + 20; // Dodatkowy margines
-        
-        return { centerX, centerY, radius };
-    }
-    
-    drawConnections() {
-        this.ctx.strokeStyle = this.colors.connection;
-        this.ctx.lineWidth = 1;
-        
         this.objects.forEach(obj => {
-            if (obj.layout2D && obj.layout2D.parent) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(obj.layout2D.parent.layout2D.x, obj.layout2D.parent.layout2D.y);
-                this.ctx.lineTo(obj.layout2D.x, obj.layout2D.y);
-                this.ctx.stroke();
+            if (obj.layout2D) {
+                const halfSize = obj.layout2D.size / 2;
+                const labelHeight = 50; // Margines na etykietę
+                
+                minX = Math.min(minX, obj.layout2D.x - halfSize);
+                maxX = Math.max(maxX, obj.layout2D.x + halfSize);
+                minY = Math.min(minY, obj.layout2D.y - halfSize);
+                maxY = Math.max(maxY, obj.layout2D.y + halfSize + labelHeight);
             }
         });
+        
+        this.bounds = {
+            minX, maxX, minY, maxY,
+            width: maxX - minX,
+            height: maxY - minY
+        };
+        
+        console.log('📐 Wymiary układu:', this.bounds);
     }
     
-    drawObject(obj) {
-        if (!obj.layout2D) return;
+    createViewport() {
+        // Stwórz viewport dla pan/zoom
+        this.viewport = document.createElement('div');
+        this.viewport.id = 'view2d-viewport';
+        this.viewport.style.position = 'absolute';
+        this.viewport.style.width = '100%';
+        this.viewport.style.height = '100%';
+        this.viewport.style.transformOrigin = 'center center';
+        this.viewport.style.transition = 'none';
+        this.container.appendChild(this.viewport);
         
-        // Zastosuj zoom i offset
-        const x = (obj.layout2D.x + this.offsetX) * this.scale;
-        const y = (obj.layout2D.y + this.offsetY) * this.scale;
-        const radius = obj.displayRadius * this.scale;
-        
-        // Get color based on object type and planet type
-        let color = this.colors.planet;
-        
-        if (obj.objectType === 'star') {
-            color = '#ffff00';
-        } else if (obj.objectType === 'planet') {
-            // Różne kolory dla różnych typów planet
-            switch (obj.planetType) {
-                case 'gas_giant':
-                    color = '#ff8844'; // Pomarańczowy dla gazowych gigantów
-                    break;
-                case 'ice_giant':
-                    color = '#44aaff'; // Niebieski dla lodowych gigantów
-                    break;
-                case 'terrestrial':
-                    // Różne kolory dla planet skalistych
-                    if (obj.name.includes('Navia')) color = '#66cc66'; // Zielony - Ziemia
-                    else if (obj.name.includes('Ravok')) color = '#cc6644'; // Czerwony - Mars
-                    else if (obj.name.includes('Pertam')) color = '#cccc44'; // Żółty - Merkury
-                    else color = '#8888cc'; // Domyślny niebieski
-                    break;
-                default:
-                    color = this.colors.planet;
-            }
-        } else if (obj.objectType === 'moon') {
-            // Różne kolory dla księżyców
-            if (obj.name.includes('Elyra')) color = '#cccccc'; // Szary - Księżyc
-            else if (obj.name.includes('Europa')) color = '#aaccff'; // Jasnoniebieski - Europa
-            else if (obj.name.includes('Titan')) color = '#ffaa66'; // Pomarańczowy - Tytan
-            else color = this.colors.moon;
-        } else if (obj.objectType === 'wormhole') {
-            color = this.colors.wormhole;
-        } else if (obj.objectType === 'danger_zone') {
-            color = this.colors.dangerZone;
-        } else if (obj.objectType === 'user_object') {
-            color = this.colors.userObject;
-        }
-        
-        // Highlight if hovered
-        if (obj === this.hoveredObject) {
-            this.ctx.strokeStyle = '#ffffff';
-            this.ctx.lineWidth = 2;
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-            this.ctx.stroke();
-        }
-        
-        // Draw object
-        this.ctx.fillStyle = color;
-        this.ctx.beginPath();
-        
-        if (obj.objectType === 'star') {
-            // Draw sun with special glow effect
-            const time = Date.now() * 0.002;
-            
-            // Outer glow
-            const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius * 3);
-            gradient.addColorStop(0, '#ffff00aa');
-            gradient.addColorStop(0.3, '#ffaa0044');
-            gradient.addColorStop(0.6, '#ff660022');
-            gradient.addColorStop(1, '#ff000000');
-            
-            this.ctx.fillStyle = gradient;
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, radius * 3, 0, Math.PI * 2);
-            this.ctx.fill();
-            
-            // Main sun body with pulsing effect
-            const pulseRadius = radius + Math.sin(time * 2) * 2;
-            this.ctx.fillStyle = '#ffff00';
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, pulseRadius, 0, Math.PI * 2);
-            this.ctx.fill();
-            
-            // Inner bright core
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, pulseRadius * 0.6, 0, Math.PI * 2);
-            this.ctx.fill();
-            
-            return;
-        } else if (obj.objectType === 'danger_zone') {
-            // Nie rysuj znaczników stref - tylko obszary z napisami
-            return;
-        } else if (obj.objectType === 'wormhole') {
-            // Draw wormholes as rotating rings
-            const time = Date.now() * 0.001;
-            this.ctx.save();
-            this.ctx.translate(x, y);
-            this.ctx.rotate(time);
-            this.ctx.strokeStyle = color;
-            this.ctx.lineWidth = 2;
-            this.ctx.beginPath();
-            this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.arc(0, 0, radius * 0.6, 0, Math.PI * 2);
-            this.ctx.stroke();
-            this.ctx.restore();
-            return;
-        } else {
-            // Draw regular objects as circles
-            this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-        }
-        
-        this.ctx.fill();
-        
-        // Add inner glow for planets based on type
-        if (obj.objectType === 'planet') {
-            let glowColor = color + '44';
-            if (obj.planetType === 'gas_giant') {
-                glowColor = color + '66';
-            } else if (obj.planetType === 'ice_giant') {
-                glowColor = color + '55';
-            }
-            
-            this.ctx.fillStyle = glowColor;
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, radius * 1.5, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
+        console.log('✅ Viewport utworzony');
     }
     
-    drawLabel(obj) {
-        if (!obj.layout2D) return;
-        
-        // Zastosuj zoom i offset
-        const x = (obj.layout2D.x + this.offsetX) * this.scale;
-        let y = (obj.layout2D.y + obj.displayRadius + 8 + this.offsetY) * this.scale; // Bliżej obiektu
-        
-        // Dla księżyców - napisy bardzo blisko
-        if (obj.objectType === 'moon' && obj.layout2D.parent) {
-            y = (obj.layout2D.y + obj.displayRadius + 6 + this.offsetY) * this.scale; // Jeszcze bliżej dla księżyców
-        }
-        
-        // Skaluj czcionkę z zoom
-        const fontSize = Math.max(8, Math.min(16, 10 * this.scale));
-        
-        // Cień pod tekstem dla lepszej czytelności
-        this.ctx.fillStyle = '#000000';
-        this.ctx.font = `${fontSize}px "Fira Mono", monospace`;
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText(obj.name, x + 1, y + 1);
-        
-        // Główny tekst - biały dla lepszego kontrastu
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.fillText(obj.name, x, y);
-    }
-    
-    // Funkcja drawCenterMarker() usunięta - niepotrzebny krzyżyk
-    
-    drawNoDataMessage() {
-        this.ctx.fillStyle = this.colors.text;
-        this.ctx.font = '16px "Fira Mono", monospace';
-        this.ctx.textAlign = 'center';
-        
-        const messages = [
-            'ŁADOWANIE DANYCH SYSTEMU...',
-            '',
-            'Uruchom aplikację przez Live Server',
-            'aby załadować dane z pliku CSV'
-        ];
-        
-        let y = this.centerY - 60;
-        messages.forEach(message => {
-            if (message) {
-                this.ctx.fillText(message, this.centerX, y);
-            }
-            y += 25;
-        });
-        
-        // Draw loading animation
-        const time = Date.now() * 0.003;
-        const radius = 20;
-        this.ctx.strokeStyle = this.colors.text;
-        this.ctx.lineWidth = 2;
-        this.ctx.beginPath();
-        this.ctx.arc(this.centerX, this.centerY + 80, radius, time, time + Math.PI);
-        this.ctx.stroke();
-    }
-    
-    handleClick(event) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        
-        // Najpierw sprawdź czy kliknięto w napis strefy
-        const clickedZoneLabel = this.getZoneLabelAt(x, y);
-        if (clickedZoneLabel && window.showObjectInfo) {
-            window.showObjectInfo(clickedZoneLabel);
-            return;
-        }
-        
-        // Potem sprawdź inne obiekty (ale nie strefy jako obiekty)
-        const clickedObject = this.getObjectAt(x, y);
-        if (clickedObject && clickedObject.objectType !== 'danger_zone' && window.showObjectInfo) {
-            window.showObjectInfo(clickedObject);
-        }
-    }
-    
-    handleMouseDown(event) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        
-        this.isDragging = true;
-        this.lastMouseX = x;
-        this.lastMouseY = y;
-        this.canvas.style.cursor = 'grabbing';
-    }
-    
-    handleMouseUp(event) {
-        this.isDragging = false;
-        this.canvas.style.cursor = 'default';
-    }
-    
-    handleMouseMove(event) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        
-        if (this.isDragging) {
-            // Panning - przesuwanie mapy
-            const deltaX = (x - this.lastMouseX) / this.scale;
-            const deltaY = (y - this.lastMouseY) / this.scale;
+    setupPanZoom() {
+        // Mousewheel zoom
+        this.container.addEventListener('wheel', (e) => {
+            e.preventDefault();
             
-            this.offsetX += deltaX;
-            this.offsetY += deltaY;
-            
-            this.lastMouseX = x;
-            this.lastMouseY = y;
-            
-            this.render();
-            return;
-        }
-        
-        const hoveredObject = this.getObjectAt(x, y);
-        
-        if (hoveredObject !== this.hoveredObject) {
-            this.hoveredObject = hoveredObject;
-            this.canvas.style.cursor = hoveredObject ? 'pointer' : 'default';
-            this.render();
-        }
-    }
-    
-    handleWheel(event) {
-        event.preventDefault();
-        
-        const rect = this.canvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-        
-        // Zoom factor
-        const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1;
-        const newScale = Math.max(0.1, Math.min(5, this.scale * zoomFactor));
-        
-        if (newScale !== this.scale) {
-            // Calculate zoom point relative to center
-            const zoomPointX = mouseX - this.centerX;
-            const zoomPointY = mouseY - this.centerY;
-            
-            // Update offset to zoom towards mouse position
-            this.offsetX = this.offsetX * zoomFactor - zoomPointX * (zoomFactor - 1);
-            this.offsetY = this.offsetY * zoomFactor - zoomPointY * (zoomFactor - 1);
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newScale = Math.max(0.1, Math.min(5, this.scale * delta));
             
             this.scale = newScale;
-            this.render();
-        }
-    }
-    
-    getObjectAt(x, y) {
-        for (let obj of this.objects) {
-            if (!obj.layout2D) continue;
+            this.updateViewportTransform();
             
-            // Zastosuj zoom i offset do pozycji obiektu
-            const objX = (obj.layout2D.x + this.offsetX) * this.scale;
-            const objY = (obj.layout2D.y + this.offsetY) * this.scale;
-            const objRadius = obj.displayRadius * this.scale;
-            
-            const dx = x - objX;
-            const dy = y - objY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance <= objRadius + 5) {
-                return obj;
+            console.log(`🔍 Zoom: ${(this.scale * 100).toFixed(0)}%`);
+        });
+        
+        // Mouse drag to pan
+        this.viewport.addEventListener('mousedown', (e) => {
+            // Nie przeciągaj jeśli kliknięto na obiekt
+            if (e.target.closest('[style*="cursor: pointer"]')) {
+                return;
             }
-        }
-        return null;
-    }
-    
-    getZoneLabelAt(x, y) {
-        // Sprawdź czy kliknięto w napis strefy niebezpieczeństwa z zoom i offset
-        const dangerZones = this.objects.filter(obj => obj.objectType === 'danger_zone');
-        
-        for (let zone of dangerZones) {
-            const affectedObjects = this.findObjectsInZone(zone);
-            if (affectedObjects.length > 0) {
-                const bounds = this.calculateZoneBounds(affectedObjects);
-                
-                // Zastosuj zoom i offset do pozycji napisu
-                const centerX = (bounds.centerX + this.offsetX) * this.scale;
-                const centerY = (bounds.centerY + this.offsetY) * this.scale;
-                const radius = (bounds.radius + 30) * this.scale;
-                const labelY = centerY + radius + 50 * this.scale;
-                
-                // Sprawdź czy kliknięto w obszar napisu (przybliżony prostokąt z zoom)
-                const fontSize = Math.max(8, Math.min(16, 12 * this.scale));
-                const textWidth = zone.name.length * fontSize * 0.6; // Przybliżona szerokość tekstu
-                const textHeight = fontSize * 1.2;
-                
-                if (x >= centerX - textWidth/2 && 
-                    x <= centerX + textWidth/2 &&
-                    y >= labelY - textHeight/2 && 
-                    y <= labelY + textHeight/2) {
-                    return zone;
-                }
-            }
-        }
-        return null;
-    }
-    
-    extractDataFromDropdown() {
-        console.log('🔍 Próbuję wyciągnąć dane z dropdown...');
-        
-        // Sprawdź czy istnieje globalna zmienna stars (używana w widoku 3D)
-        if (window.stars && window.stars.length > 0) {
-            console.log(`📊 Znaleziono ${window.stars.length} obiektów w window.stars`);
             
-            // Konwertuj obiekty z stars na format dla widoku 2D
-            window.spaceEngineersData = window.stars.map(star => {
-                return {
-                    name: star.userData.name || 'Nieznany',
-                    type: star.userData.type || 'Obiekt',
-                    x: star.position.x,
-                    y: star.position.y,
-                    z: star.position.z,
-                    diameter: star.userData.diameter || 1,
-                    color: star.material ? star.material.color.getHex() : 0xffffff,
-                    objectType: this.determineObjectType(star.userData.type),
-                    description: star.userData.description || 'Brak opisu'
-                };
-            });
+            this.isDragging = true;
+            this.dragStartX = e.clientX - this.panX;
+            this.dragStartY = e.clientY - this.panY;
+            this.viewport.style.cursor = 'grabbing';
+        });
+        
+        this.container.addEventListener('mousemove', (e) => {
+            if (!this.isDragging) return;
             
-            console.log(`✅ Skonwertowano dane z window.stars do spaceEngineersData`);
-            return true;
+            this.panX = e.clientX - this.dragStartX;
+            this.panY = e.clientY - this.dragStartY;
+            this.updateViewportTransform();
+        });
+        
+        this.container.addEventListener('mouseup', () => {
+            this.isDragging = false;
+            this.viewport.style.cursor = 'default';
+        });
+        
+        this.container.addEventListener('mouseleave', () => {
+            this.isDragging = false;
+            this.viewport.style.cursor = 'default';
+        });
+        
+        console.log('✅ Pan & Zoom włączone');
+    }
+    
+    updateViewportTransform() {
+        if (this.viewport) {
+            this.viewport.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`;
+        }
+    }
+    
+    addZoomControls() {
+        // Kontener dla kontrolek zoom
+        const controls = document.createElement('div');
+        controls.style.position = 'absolute';
+        controls.style.bottom = '20px';
+        controls.style.right = '20px';
+        controls.style.display = 'flex';
+        controls.style.flexDirection = 'column';
+        controls.style.gap = '10px';
+        controls.style.zIndex = '10000';
+        
+        // Styl przycisków
+        const buttonStyle = {
+            background: '#101f13',
+            color: '#93ffd2',
+            border: '1.6px solid #13fd87',
+            borderRadius: '6px',
+            width: '40px',
+            height: '40px',
+            cursor: 'pointer',
+            fontSize: '20px',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.14s, color 0.12s',
+            fontFamily: '"Fira Mono", monospace'
+        };
+        
+        // Przycisk Zoom In (+)
+        const zoomIn = document.createElement('button');
+        zoomIn.textContent = '+';
+        Object.assign(zoomIn.style, buttonStyle);
+        zoomIn.addEventListener('click', () => {
+            this.scale = Math.min(5, this.scale * 1.2);
+            this.updateViewportTransform();
+            console.log(`🔍 Zoom In: ${(this.scale * 100).toFixed(0)}%`);
+        });
+        zoomIn.addEventListener('mouseenter', () => {
+            zoomIn.style.background = '#18ffcc22';
+            zoomIn.style.color = '#fff';
+        });
+        zoomIn.addEventListener('mouseleave', () => {
+            zoomIn.style.background = '#101f13';
+            zoomIn.style.color = '#93ffd2';
+        });
+        
+        // Przycisk Zoom Out (-)
+        const zoomOut = document.createElement('button');
+        zoomOut.textContent = '-';
+        Object.assign(zoomOut.style, buttonStyle);
+        zoomOut.addEventListener('click', () => {
+            this.scale = Math.max(0.1, this.scale * 0.8);
+            this.updateViewportTransform();
+            console.log(`🔍 Zoom Out: ${(this.scale * 100).toFixed(0)}%`);
+        });
+        zoomOut.addEventListener('mouseenter', () => {
+            zoomOut.style.background = '#18ffcc22';
+            zoomOut.style.color = '#fff';
+        });
+        zoomOut.addEventListener('mouseleave', () => {
+            zoomOut.style.background = '#101f13';
+            zoomOut.style.color = '#93ffd2';
+        });
+        
+        // Przycisk Reset (⟲)
+        const reset = document.createElement('button');
+        reset.textContent = '⟲';
+        Object.assign(reset.style, buttonStyle);
+        reset.addEventListener('click', () => {
+            this.scale = 1;
+            this.panX = 0;
+            this.panY = 0;
+            this.updateViewportTransform();
+            console.log('🔄 Reset widoku');
+        });
+        reset.addEventListener('mouseenter', () => {
+            reset.style.background = '#18ffcc22';
+            reset.style.color = '#fff';
+        });
+        reset.addEventListener('mouseleave', () => {
+            reset.style.background = '#101f13';
+            reset.style.color = '#93ffd2';
+        });
+        
+        controls.appendChild(zoomIn);
+        controls.appendChild(zoomOut);
+        controls.appendChild(reset);
+        
+        this.container.appendChild(controls);
+        console.log('✅ Kontrolki zoom dodane');
+    }
+    
+    renderObject(obj) {
+        // Kontener dla obiektu (grafika + etykieta)
+        const objectDiv = document.createElement('div');
+        objectDiv.style.position = 'absolute';
+        objectDiv.style.left = (obj.layout2D.x - obj.layout2D.size / 2) + 'px';
+        objectDiv.style.top = (obj.layout2D.y - obj.layout2D.size / 2) + 'px';
+        objectDiv.style.width = obj.layout2D.size + 'px';
+        objectDiv.style.height = obj.layout2D.size + 'px';
+        objectDiv.style.cursor = 'pointer';
+        objectDiv.style.transition = 'transform 0.2s';
+        objectDiv.style.zIndex = '5000';
+        
+        // Hover effect
+        objectDiv.addEventListener('mouseenter', () => {
+            objectDiv.style.transform = 'scale(1.1)';
+        });
+        objectDiv.addEventListener('mouseleave', () => {
+            objectDiv.style.transform = 'scale(1)';
+        });
+        
+        // Click handler
+        objectDiv.addEventListener('click', () => {
+            this.showInfo(obj);
+        });
+        
+        // Grafika
+        const img = document.createElement('img');
+        img.src = obj.graphicPath;
+        img.alt = obj.name;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.style.filter = 'drop-shadow(0 0 10px rgba(255,255,255,0.3))';
+        
+        img.onerror = () => {
+            console.warn(`⚠️ Nie można załadować grafiki: ${obj.graphicPath}`);
+            // Zastąp brakującą grafikę placeholder
+            img.src = 'data:image/svg+xml,' + encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+                    <circle cx="50" cy="50" r="40" fill="#666" stroke="#fff" stroke-width="2"/>
+                    <text x="50" y="55" text-anchor="middle" fill="#fff" font-size="12">?</text>
+                </svg>`
+            );
+        };
+        
+        objectDiv.appendChild(img);
+        
+        // Etykieta (minimalistyczna - tylko nazwa)
+        const label = document.createElement('div');
+        label.textContent = obj.name;
+        label.style.position = 'absolute';
+        label.style.top = '100%';
+        label.style.left = '50%';
+        label.style.transform = 'translateX(-50%)';
+        label.style.marginTop = '8px';
+        label.style.color = '#ffffff';
+        label.style.fontFamily = '"Fira Mono", monospace';
+        label.style.fontSize = '12px';
+        label.style.textAlign = 'center';
+        label.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+        label.style.padding = '4px 8px';
+        label.style.borderRadius = '4px';
+        label.style.whiteSpace = 'nowrap';
+        label.style.textShadow = '0 0 5px rgba(0,0,0,0.8)';
+        label.style.pointerEvents = 'none';
+        label.style.zIndex = '5001';
+        
+        objectDiv.appendChild(label);
+        
+        // Dodaj do viewport zamiast bezpośrednio do kontenera
+        this.viewport.appendChild(objectDiv);
+    }
+    
+    showNoDataMessage() {
+        const message = document.createElement('div');
+        message.style.position = 'absolute';
+        message.style.top = '50%';
+        message.style.left = '50%';
+        message.style.transform = 'translate(-50%, -50%)';
+        message.style.color = '#ffffff';
+        message.style.fontFamily = '"Fira Mono", monospace';
+        message.style.fontSize = '18px';
+        message.style.textAlign = 'center';
+        message.style.textShadow = '0 0 10px rgba(0,0,0,0.8)';
+        
+        message.innerHTML = `
+            <div style="margin-bottom: 20px;">⚠️</div>
+            <div>BRAK DANYCH DO WYŚWIETLENIA</div>
+            <div style="font-size: 14px; margin-top: 10px; opacity: 0.7;">
+                Upewnij się, że dane z CSV zostały załadowane
+            </div>
+        `;
+        
+        this.container.appendChild(message);
+    }
+    
+    showInfo(obj) {
+        // Usuń poprzedni panel jeśli istnieje
+        const existingPanel = document.getElementById('view2d-info-panel');
+        if (existingPanel) {
+            existingPanel.remove();
         }
         
-        console.log('❌ Nie znaleziono danych w window.stars');
-        return false;
-    }
-    
-    determineObjectType(type) {
-        if (!type) return 'planet';
+        // Stwórz nowy panel info
+        const panel = document.createElement('div');
+        panel.id = 'view2d-info-panel';
+        panel.style.position = 'fixed';
+        panel.style.bottom = '20px';
+        panel.style.left = '50%';
+        panel.style.transform = 'translateX(-50%)';
+        panel.style.background = 'rgba(18, 44, 32, 0.95)';
+        panel.style.border = '2px solid #17ffb2';
+        panel.style.borderRadius = '10px';
+        panel.style.padding = '15px 25px';
+        panel.style.color = '#b2ffd6';
+        panel.style.fontFamily = '"Fira Mono", monospace';
+        panel.style.fontSize = '14px';
+        panel.style.zIndex = '10001';
+        panel.style.maxWidth = '600px';
+        panel.style.boxShadow = '0 4px 20px rgba(0, 44, 19, 0.7)';
         
-        const typeStr = type.toLowerCase();
-        if (typeStr.includes('księżyc') || typeStr.includes('moon')) return 'moon';
-        if (typeStr.includes('tunel') || typeStr.includes('wormhole')) return 'wormhole';
-        if (typeStr.includes('danger') || typeStr.includes('niebezpiecz')) return 'danger_zone';
-        if (typeStr.includes('user') || typeStr.includes('użytkownik')) return 'user_object';
-        return 'planet';
-    }
-    
-    createTestData() {
-        console.log('🧪 Tworzę dane testowe dla widoku 2D');
+        // Formatuj informacje
+        const info = [];
+        info.push(`<b style="color: #fffacd; font-size: 16px;">${obj.name}</b>`);
+        info.push(`<div style="margin-top: 8px;">`);
+        info.push(`<span style="color: #93ffd2;">Typ:</span> ${obj.objectType || 'N/A'}`);
+        info.push(`<span style="margin-left: 20px; color: #93ffd2;">Średnica:</span> ${obj.diameter || 'N/A'} km`);
+        info.push(`</div>`);
         
-        // Create test objects based on the CSV structure
-        this.objects = [
-            {
-                name: 'Navia (Test)',
-                type: 'Planeta',
-                x: 0.5,
-                y: 0.5,
-                z: 0.5,
-                diameter: 120,
-                color: 0xFF0000,
-                objectType: 'planet',
-                description: 'Testowa planeta - dane nie załadowane z CSV',
-                distance: Math.sqrt(0.5*0.5 + 0.5*0.5 + 0.5*0.5),
-                displayRadius: 15
-            },
-            {
-                name: 'Elyra (Test)',
-                type: 'Księżyc',
-                x: 16384.5,
-                y: 136384.5,
-                z: -113615.5,
-                diameter: 19,
-                color: 0x00FF00,
-                objectType: 'moon',
-                description: 'Testowy księżyc - dane nie załadowane z CSV',
-                distance: Math.sqrt(16384.5*16384.5 + 136384.5*136384.5 + 113615.5*113615.5),
-                displayRadius: 12
-            },
-            {
-                name: 'Wormhole Test',
-                type: 'Tunel',
-                x: 20013596.26,
-                y: 1185.94,
-                z: 758.1,
-                diameter: 2,
-                color: 0xFFFFFF,
-                objectType: 'wormhole',
-                description: 'Testowy wormhole - dane nie załadowane z CSV',
-                distance: Math.sqrt(20013596.26*20013596.26 + 1185.94*1185.94 + 758.1*758.1),
-                displayRadius: 10
+        if (obj.x !== undefined) {
+            info.push(`<div style="margin-top: 5px; font-size: 12px; opacity: 0.8;">`);
+            info.push(`GPS: X:${obj.x.toFixed(0)} Y:${obj.y.toFixed(0)} Z:${obj.z.toFixed(0)}`);
+            info.push(`</div>`);
+        }
+        
+        panel.innerHTML = info.join(' ');
+        
+        // Dodaj przycisk zamknięcia
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style.position = 'absolute';
+        closeBtn.style.top = '5px';
+        closeBtn.style.right = '5px';
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.border = 'none';
+        closeBtn.style.color = '#17ffb2';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.fontSize = '18px';
+        closeBtn.style.padding = '5px 10px';
+        closeBtn.addEventListener('click', () => panel.remove());
+        
+        panel.appendChild(closeBtn);
+        
+        // Dodaj do kontenera
+        this.container.appendChild(panel);
+        
+        // Auto-zamknij po 5 sekundach
+        setTimeout(() => {
+            if (panel.parentNode) {
+                panel.remove();
             }
-        ];
-        
-        // Sort by distance from center
-        this.objects.sort((a, b) => a.distance - b.distance);
-        
-        console.log(`✅ Utworzono ${this.objects.length} obiektów testowych`);
-        
-        // Calculate positions for 2D layout
-        this.calculateLayout();
+        }, 5000);
     }
 }
 
@@ -949,7 +708,7 @@ class View2D {
 let view2D = null;
 
 function initView2D() {
-    console.log('🚀 Inicjalizacja widoku 2D...');
+    console.log('🚀 Inicjalizacja widoku 2D (nowa wersja z grafikami)...');
     view2D = new View2D();
     
     // Setup toggle button
@@ -959,28 +718,6 @@ function initView2D() {
         console.log('✅ Przycisk 2D/3D podłączony');
     } else {
         console.error('❌ Nie znaleziono przycisku view-toggle-btn');
-    }
-    
-    // Debug - sprawdź stan danych
-    console.log('🔍 Stan danych przy inicjalizacji 2D:');
-    console.log('- window.spaceEngineersData:', window.spaceEngineersData);
-    console.log('- Długość:', window.spaceEngineersData ? window.spaceEngineersData.length : 'undefined');
-    
-    // Sprawdź dropdown - jeśli ma opcje, to dane są załadowane
-    const dropdown = document.getElementById('object-dropdown');
-    if (dropdown) {
-        console.log('- Dropdown opcje:', dropdown.options.length);
-        if (dropdown.options.length > 1) {
-            console.log('✅ Dropdown ma opcje - dane prawdopodobnie załadowane');
-        }
-    }
-    
-    // Prepare objects if data is already available
-    if (window.spaceEngineersData && window.spaceEngineersData.length > 0) {
-        console.log('📊 Dane już dostępne - przygotowywanie widoku 2D');
-        view2D.prepareObjects();
-    } else {
-        console.log('⏳ Dane jeszcze nie załadowane - widok 2D będzie przygotowany później');
     }
 }
 
@@ -1000,18 +737,7 @@ function toggleView() {
     }
 }
 
-// Animation loop for 2D view
-function animate2D() {
-    if (view2D && view2D.isActive) {
-        view2D.render();
-    }
-    requestAnimationFrame(animate2D);
-}
-
 // Export to global scope
 window.initView2D = initView2D;
 window.toggleView = toggleView;
 window.view2D = view2D;
-
-// Start animation loop
-animate2D();

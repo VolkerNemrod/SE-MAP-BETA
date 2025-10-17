@@ -12,7 +12,7 @@
    BASE STYLES
    ============================================ */
 body {
-    background: #181f1e;
+    background: #000000;
     color: #afffbe;
     font-family: 'Fira Mono', 'Consolas', 'monospace';
     margin: 0; 
@@ -40,13 +40,15 @@ body {
    2D VIEW CONTAINER
    ============================================ */
 #view2d-container {
-    position: absolute;
+    position: fixed;
     left: 0;
     top: 0;
     width: 100vw;
     height: 100vh;
     display: none;
-    z-index: 1;
+    z-index: 100;
+    background-color: #000000;
+    overflow: hidden;
 }
 
 #view2d-canvas {
@@ -197,8 +199,9 @@ body {
     box-shadow: 4px 8px 20px #002c1370;
     font-family: 'Fira Mono','Consolas',monospace;
     font-size: 1.06em;
-    display: none;
+    display: none !important;
     overflow-y: auto;
+    visibility: hidden;
 }
 
 #object-info {

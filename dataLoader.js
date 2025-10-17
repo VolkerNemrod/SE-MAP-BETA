@@ -34,8 +34,11 @@ function loadSystemDataCsv(csvPath, callback) {
     // AGRESYWNE CACHE BUSTING dla serwerów komercyjnych (Mikrus/cyberFolks)
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(7);
-    const cacheBuster = `?v=${timestamp}&r=${randomId}&nocache=1`;
+    const sessionId = Math.floor(Math.random() * 1000000);
+    const cacheBuster = `?v=${timestamp}&r=${randomId}&s=${sessionId}&nocache=1&bust=1`;
     const urlWithCacheBuster = csvPath + cacheBuster;
+    
+    console.log('🔥 Ładowanie CSV z cache buster:', urlWithCacheBuster);
     
     // Maksymalne opcje anti-cache
     fetch(urlWithCacheBuster, {
@@ -67,6 +70,7 @@ function loadSystemDataCsv(csvPath, callback) {
                 values.push(buffer);
                 const row = {};
                 headers.forEach((h, i) => row[h.trim()] = (values[i]||'').trim());
+                
                 // Parsowanie GPS Space Engineers jeśli dostępne
                 if (row.seGPS && row.seGPS.trim()) {
                     try {
