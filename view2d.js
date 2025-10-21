@@ -71,7 +71,9 @@ class View2D {
         const authorInfo = document.getElementById('author-info');
         
         if (topBar) topBar.style.display = 'flex';
-        if (sidePanel) sidePanel.style.display = 'block';
+        // Nie przywracaj sidePanel na 'block' - powinien być ukryty domyślnie
+        // Panel będzie pokazany przez showObjectInfo() gdy użytkownik kliknie na obiekt
+        if (sidePanel) sidePanel.style.display = 'none';
         if (authorInfo) authorInfo.style.display = 'block';
     }
     

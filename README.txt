@@ -19,6 +19,28 @@ For any further use, modification, distribution, or integration with other syste
 
 ---
 
+WERSJA 21.10.2025 - HISTORIA ZMIAN
+===================================
+
+NAPRAWIONE BŁĘDY:
+✅ **Panel informacyjny obiektów** - Naprawiono krytyczny błąd uniemożliwiający 
+   otwieranie panelu z opisami planet w widoku 3D
+   - Usunięto blokadę `!important` z CSS (#side-info-panel)
+   - Poprawiono zachowanie panelu przy przełączaniu między widokami 2D/3D
+   - Panel jest teraz domyślnie ukryty i pokazuje się po kliknięciu na obiekt
+
+ZMIANY TECHNICZNE:
+- style.css: Usunięto `display: none !important;` i `visibility: hidden` z #side-info-panel
+- view2d.js: Panel nie jest już automatycznie pokazywany przy powrocie z widoku 2D
+- Zaktualizowano wersję cache-busting we wszystkich plikach JS/CSS (v=21.10.2025)
+
+WPŁYW NA UŻYTKOWNIKA:
+- Kliknięcie na planetę/księżyc/wormhole w widoku 3D prawidłowo otwiera panel z informacjami
+- Przełączanie między widokami 2D i 3D działa poprawnie
+- Panel informacyjny nie pojawia się niepotrzebnie
+
+---
+
 DESCRIPTION
 ===========
 
@@ -121,6 +143,7 @@ MOBILE SUPPORT:
 ---
 
 FILE STRUCTURE
+==============
 
 MAIN FILES:
 - index.html – Main page, dependency loading
@@ -166,6 +189,7 @@ LICENSE:
 ---
 
 INSTALLATION & SETUP
+====================
 
 1. Download all project files to one folder
 2. For full functionality, open `index.html` via local web server (e.g., Live Server, command: `npx serve .`)
@@ -181,6 +205,7 @@ REQUIREMENTS:
 ---
 
 MULTILINGUAL SYSTEM
+===================
 
 The application features a multilingual system with automatic browser language detection.
 
@@ -198,7 +223,7 @@ ADDING NEW LANGUAGE:
 {
   "app": {
     "title": "Space Engineers 3D Map",
-    "author": "Author: VolkerNemrod, 2025 v.17.10.2025"
+    "author": "Author: VolkerNemrod, 2025 v.21.10.2025"
   },
   "ui": {
     "buttons": {
@@ -264,6 +289,7 @@ window.addEventListener('languageChanged', () => {
 ---
 
 DATA FORMAT DESCRIPTION
+=======================
 
 SYSTEM FILE (uklad.csv):
 Each row represents a single space object, zone, or wormhole.
@@ -326,6 +352,7 @@ SUPPORTED SEPARATORS:
 ---
 
 MARKER & ANIMATION SYSTEM
+=========================
 
 MARKER TYPES:
 - **jump** - Yellow destination point markers (gentle pulsing)
@@ -346,6 +373,7 @@ MANAGEMENT:
 ---
 
 ROUTE PLANNING - DETAILS
+=========================
 
 COLLISION DETECTION ALGORITHM:
 1. **Route Line** - calculate straight line between START and END points
@@ -360,10 +388,3 @@ SAFE DISTANCES:
 - **Planets** - radius × 2.5 (strong gravity)
 - **Moons** - radius × 1.5 (moderate gravity)
 - **Asteroids** - radius × 0.5 (weak gravity)
-=============
-
-MAIN FILES:
-- index.html – Main page, dependency loading
-- main.js – Map startup and data loading
-- scene.js – 3D scene rendering, animations, effects
-- view2d.js – 2D map view with zoom and panning functions
